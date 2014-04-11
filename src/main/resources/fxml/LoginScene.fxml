@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" minHeight="187.0" minWidth="184.0" prefHeight="349.00019999999495" prefWidth="376.25" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLLoginController">
+  <children>
+    <Label alignment="CENTER" layoutY="14.0" minHeight="-1.0" minWidth="-1.0" prefHeight="84.0" prefWidth="270.75" styleClass="logo" text="Skype" AnchorPane.leftAnchor="51.88" AnchorPane.rightAnchor="51.88">
+      <effect>
+        <Reflection bottomOpacity="0.023809523809523808" fraction="0.6388888888888888" topOffset="-30.0" topOpacity="0.5634920634920635" />
+      </effect>
+    </Label>
+    <Label layoutX="52.0" layoutY="145.0" text="User ID" />
+    <TextField fx:id="textUserID" layoutY="161.0" prefWidth="315.0" AnchorPane.leftAnchor="51.88" AnchorPane.rightAnchor="49.12" />
+    <Label layoutX="52.0" layoutY="203.0" text="Password" />
+    <PasswordField fx:id="textUserPassword" layoutY="219.0" prefWidth="315.0" AnchorPane.leftAnchor="51.38" AnchorPane.rightAnchor="49.62" />
+    <Button fx:id="buttonLogin" layoutX="52.0" layoutY="264.0" mnemonicParsing="false" onAction="#handleLoginButtonClick" text="Login" />
+    <Button fx:id="buttonCreateAccount" layoutY="264.0" mnemonicParsing="false" text="Create account" AnchorPane.rightAnchor="51.0" />
+    <Label fx:id="labelErrorMessage" prefHeight="25" prefWidth="348.25" text="" AnchorPane.bottomAnchor="3.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
+  </children>
+  <stylesheets>
+    <URL value="@../styles/Styles.css" />
+  </stylesheets>
+</AnchorPane>
