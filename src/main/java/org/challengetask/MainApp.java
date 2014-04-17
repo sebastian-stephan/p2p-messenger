@@ -6,11 +6,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.challengetask.audio.OpusSoundTest;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
 import org.challengetask.network.P2POverlay;
@@ -22,6 +22,7 @@ public class MainApp extends Application {
     private FXMLLoginController loginController;
     private FXMLMainController mainController;
     private P2POverlay p2p;
+    private OpusSoundTest o;
     
     @Override
     public void start(Stage stage) throws Exception {
@@ -43,7 +44,10 @@ public class MainApp extends Application {
         mainStage.setScene(loginScene);
         mainStage.show();
         
+        // Try to bootstrap and show result on the bottom of the login screen
         loginController.setMessage(p2p.bootstrap());
+        //o = new OpusSoundTest();
+        //o.start();
         
     }
     
@@ -83,7 +87,13 @@ public class MainApp extends Application {
         launch(args);
     }
     
+    @Override
+    public void stop() {
+        logout();
+    }
+    
     public void logout() {
+        //o.stop();
         p2p.shutdown();
     }
 

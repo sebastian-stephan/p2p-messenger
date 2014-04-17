@@ -13,10 +13,11 @@ import java.net.UnknownHostException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
-import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
+import net.tomp2p.p2p.builder.ShutdownBuilder;
 import net.tomp2p.peers.Number160;
 
 /**
@@ -30,11 +31,12 @@ public class P2POverlay {
 
     public String bootstrap() {
         int port = 4001;
+
         boolean peerCreated = false;
         do {
             try {
                 // Create new peer
-                peer = new PeerMaker(new Number160(rnd)).setPorts(port++).makeAndListen();
+                peer = new PeerMaker(new Number160(rnd)).ports(port++).makeAndListen();
                 peerCreated = true;
             } catch (Exception ex) {
                 System.out.println("Port already in use " + ex.getMessage());
@@ -46,9 +48,9 @@ public class P2POverlay {
         }
 
         try {
-                FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("127.0.0.1")).setPorts(4001).start();
-                futureBootstrap.awaitUninterruptibly();
-                return "Bootstrapped: " + futureBootstrap.isSuccess();
+            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("127.0.0.1")).setPorts(4001).start();
+            futureBootstrap.awaitUninterruptibly();
+            return "Bootstrapped: " + futureBootstrap.isSuccess();
         } catch (UnknownHostException ex) {
             return "Unknown host";
         }
@@ -57,7 +59,22 @@ public class P2POverlay {
 
     public void shutdown() {
         System.out.println("Shutting down...");
-        peer.shutdown();
+
+        BaseFuture shutdownBuilder = peer.shutdown();
+
+        System.out.println("Shutdown process started");
+
+        shutdownBuilder.awaitUninterruptibly();
+
+        if (shutdownBuilder.isCompleted()) {
+            System.out.println("Shutdown is complete");
+        }
+        if (shutdownBuilder.isSuccess()) {
+            System.out.println("Shutdown is Success");
+        }
+        if (shutdownBuilder.isFailed()) {
+            System.out.println("Shutdown is Failed");
+        }
         peer = null;
     }
 }
