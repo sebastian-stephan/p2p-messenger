@@ -28,6 +28,14 @@ public class FXMLLoginController implements Initializable {
         }
     }
     
+    @FXML private void handleCreateAccountButtonClick (ActionEvent event) {
+        mainApp.logout();
+    }
+    
+    public void setMessage(String s) {
+        labelErrorMessage.setText(s);
+    }
+    
     public void setApplication(MainApp _mainApp) {
         mainApp = _mainApp;
     }

@@ -20,8 +20,8 @@
     <Label layoutX="52.0" layoutY="203.0" text="Password" />
     <PasswordField fx:id="textUserPassword" layoutY="219.0" prefWidth="315.0" AnchorPane.leftAnchor="51.38" AnchorPane.rightAnchor="49.62" />
     <Button fx:id="buttonLogin" layoutX="52.0" layoutY="264.0" mnemonicParsing="false" onAction="#handleLoginButtonClick" text="Login" />
-    <Button fx:id="buttonCreateAccount" layoutY="264.0" mnemonicParsing="false" text="Create account" AnchorPane.rightAnchor="51.0" />
-    <Label fx:id="labelErrorMessage" prefHeight="25" prefWidth="348.25" text="" AnchorPane.bottomAnchor="3.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
+    <Button fx:id="buttonCreateAccount" layoutY="264.0" mnemonicParsing="false" onAction="#handleCreateAccountButtonClick" text="Create account" AnchorPane.rightAnchor="51.0" />
+    <Label fx:id="labelErrorMessage" prefHeight="25.0" prefWidth="348.25" text="" AnchorPane.bottomAnchor="3.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" />
   </children>
   <stylesheets>
     <URL value="@../styles/Styles.css" />

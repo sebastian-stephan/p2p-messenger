@@ -1,35 +1,36 @@
 package org.challengetask;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import static javafx.scene.input.DataFormat.URL;
 import javafx.stage.Stage;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
+import org.challengetask.network.P2POverlay;
 
 
 
 public class MainApp extends Application {
-    Stage mainStage;
-    FXMLLoginController loginController;
-    FXMLMainController mainController;
-
+    private Stage mainStage;
+    private FXMLLoginController loginController;
+    private FXMLMainController mainController;
+    private P2POverlay p2p;
+    
     @Override
     public void start(Stage stage) throws Exception {
         mainStage = stage;
         
+        // Setup network stuff
+        p2p = new P2POverlay();
+        
+        // Load login screen
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(getClass().getResource("/fxml/LoginScene.fxml"));
         Parent loginRoot = fxmlLoader.load();
@@ -37,10 +38,12 @@ public class MainApp extends Application {
         loginController.setApplication(this);
         Scene loginScene = new Scene(loginRoot);
         
-        // Show Login at startup
+        // Show login screen
         mainStage.setTitle("Appname");
         mainStage.setScene(loginScene);
         mainStage.show();
+        
+        loginController.setMessage(p2p.bootstrap());
         
     }
     
@@ -78,6 +81,10 @@ public class MainApp extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+    
+    public void logout() {
+        p2p.shutdown();
     }
 
 }
