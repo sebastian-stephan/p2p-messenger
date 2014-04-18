@@ -6,10 +6,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import net.tomp2p.storage.Data;
 import org.challengetask.audio.OpusSoundTest;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
@@ -22,8 +24,8 @@ public class MainApp extends Application {
     private FXMLMainController mainController;
     private P2POverlay p2p;
     private OpusSoundTest o;
-    
-    private String userProfile;
+
+    private UserProfile userProfile;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -55,19 +57,37 @@ public class MainApp extends Application {
     public boolean createAccount(String userID, String password) {
         // Check if account exists
         if (p2p.get(userID) != null) {
+            System.out.println("UserID already exists");
             return false;
         }
 
-        return p2p.put(userID, "This is the profile of " + userID);
+        // Create private UserProfile
+        userProfile = new UserProfile(userID, password);
+
+        // TODO: Encrypt it with password
+        boolean res = p2p.put(userID + password, userProfile);
+        if (res == false) {
+            System.out.println("Could not save private UserProfile");
+            return false;
+        }
+
+        // Create public UserProfile
+        res = p2p.put(userID, "This is the profile of " + userID);
+        if (res) {
+            return true;
+        } else {
+            System.out.println("Could not save public UserProfile");
+            return false;
+        }
     }
 
     public boolean login(String userID, String password) {
-        Object getResult = p2p.get(userID);
+        Object getResult = p2p.get(userID + password);
         if (getResult == null) {
             return false;
         }
 
-        userProfile = (String)getResult;
+        userProfile = (UserProfile) getResult;
 
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
