@@ -14,7 +14,7 @@ public class FXMLLoginController implements Initializable {
     private MainApp mainApp;
     
     @FXML private TextField textUserID;
-    @FXML private TextField textPassword;
+    @FXML private TextField textUserPassword;
     @FXML private Button buttonLogin;
     @FXML private Button buttonCreateAccount;
     @FXML private Label labelErrorMessage;
@@ -24,12 +24,12 @@ public class FXMLLoginController implements Initializable {
         
         if(!success) {
             labelErrorMessage.setText("Could not log into the system. UserID/Password wrong?");
-            textPassword.setText("");
+            textUserPassword.setText("");
         }
     }
     
     @FXML private void handleCreateAccountButtonClick (ActionEvent event) {
-        mainApp.logout();
+        mainApp.createAccount(textUserID.getText(), textUserPassword.getText());
     }
     
     public void setMessage(String s) {

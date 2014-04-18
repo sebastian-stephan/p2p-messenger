@@ -15,10 +15,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
+import net.tomp2p.futures.FutureGet;
+import net.tomp2p.futures.FuturePut;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.builder.ShutdownBuilder;
 import net.tomp2p.peers.Number160;
+import net.tomp2p.storage.Data;
 
 /**
  *
@@ -28,6 +31,34 @@ public class P2POverlay {
 
     private Peer peer;
     private static Random rnd = new Random();
+    
+    public boolean put(String key, Object value) {
+        Data data;
+        try {
+            data = new Data(value);
+        } catch (IOException ex) {
+            return false;
+        }
+        
+        FuturePut futurePut = peer.put(Number160.createHash(key)).setData(data).start()
+                   .awaitUninterruptibly();
+        
+        return futurePut.isSuccess();
+    }
+    
+    public Object get(String key) {
+        FutureGet futureGet = peer.get(Number160.createHash(key)).start().awaitUninterruptibly();
+        
+        if(futureGet.isSuccess()) {
+            try {
+                return futureGet.getData().object();
+            } catch (ClassNotFoundException | IOException ex) {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
 
     public String bootstrap() {
         int port = 4001;
