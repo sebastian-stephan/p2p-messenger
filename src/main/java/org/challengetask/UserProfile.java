@@ -12,8 +12,12 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
@@ -25,6 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class UserProfile implements Serializable {
     private final String userID;
     private final String password;
+    private List<String> friendsList;
     
     private KeyPair keyPair;
     
@@ -40,6 +45,14 @@ public class UserProfile implements Serializable {
         } catch (NoSuchAlgorithmException ex) {
             System.out.println("Could not generate KeyPair");
         }
+        
+        // Create new friendsList with some fake data
+        friendsList = new ArrayList<String>();
+        friendsList.add("Tony Montana");
+        friendsList.add("John Rambo");
+        friendsList.add("Darth Vader");
+        friendsList.add("Hannibal Lector");
+        
     }
     
     @Override
@@ -69,6 +82,13 @@ public class UserProfile implements Serializable {
      */
     public KeyPair getKeyPair() {
         return keyPair;
+    }
+
+    /**
+     * @return the friendsList
+     */
+    public List<String> getFriendsList() {
+        return friendsList;
     }
 
     

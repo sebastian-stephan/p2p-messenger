@@ -3,16 +3,32 @@
 <?import java.lang.*?>
 <?import java.net.*?>
 <?import java.util.*?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" minHeight="187.0" minWidth="184.0" prefHeight="501.0" prefWidth="481.25" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLMainController">
+<AnchorPane id="AnchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="441.0" prefWidth="300.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLMainController">
   <children>
-    <Label layoutX="14.0" layoutY="14.0" text="This is the main application" />
+    <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <center>
+        <AnchorPane prefHeight="-1.0" prefWidth="-1.0" BorderPane.alignment="TOP_LEFT">
+          <children>
+            <ListView fx:id="friendsList" maxHeight="-1.0" maxWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+          </children>
+        </AnchorPane>
+      </center>
+      <top>
+        <HBox>
+          <children>
+            <Label fx:id="messageLabel" text="main application" />
+          </children>
+        </HBox>
+      </top>
+    </BorderPane>
   </children>
   <stylesheets>
-    <URL value="@style.css" />
+    <URL value="@../styles/Styles.css" />
   </stylesheets>
 </AnchorPane>

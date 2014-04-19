@@ -1,6 +1,7 @@
 package org.challengetask;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -9,6 +10,8 @@ import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -95,7 +98,7 @@ public class MainApp extends Application {
 
         userProfile = (UserProfile) getResult;
 
-        // Show new window
+        // Show main window
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setLocation(getClass().getResource("/fxml/MainScene.fxml"));
@@ -107,8 +110,15 @@ public class MainApp extends Application {
         } catch (IOException ex) {
             Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        // Set the FriendsList UI to show the friends in the profile
+        mainController.setFriendsList(FXCollections.observableList(userProfile.getFriendsList()));
 
         return new Pair<>(true, "Login successful");
+    }
+    
+    public List<String> getFriendsList() {
+        return userProfile.getFriendsList();
     }
 
     public MainApp() {

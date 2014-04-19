@@ -15,9 +15,9 @@
         <Reflection bottomOpacity="0.023809523809523808" fraction="0.6388888888888888" topOffset="-30.0" topOpacity="0.5634920634920635" />
       </effect>
     </Label>
-    <Label layoutX="52.0" layoutY="145.0" text="User ID" />
+    <Label fx:id="labelUserID" layoutX="52.0" layoutY="145.0" text="User ID" />
     <TextField fx:id="textUserID" layoutY="161.0" prefWidth="315.0" AnchorPane.leftAnchor="51.88" AnchorPane.rightAnchor="49.12" />
-    <Label layoutX="52.0" layoutY="203.0" text="Password" />
+    <Label fx:id="labelUserPassword" layoutX="52.0" layoutY="203.0" text="Password" />
     <PasswordField fx:id="textUserPassword" layoutY="219.0" prefWidth="315.0" AnchorPane.leftAnchor="51.38" AnchorPane.rightAnchor="49.62" />
     <Button fx:id="buttonLogin" layoutX="52.0" layoutY="264.0" mnemonicParsing="false" onAction="#handleLoginButtonClick" text="Login" />
     <Button fx:id="buttonCreateAccount" layoutY="264.0" mnemonicParsing="false" onAction="#handleCreateAccountButtonClick" text="Create account" AnchorPane.rightAnchor="51.0" />
