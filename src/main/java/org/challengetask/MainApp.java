@@ -7,15 +7,19 @@ import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import net.tomp2p.storage.Data;
 import org.challengetask.audio.OpusSoundTest;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
 import org.challengetask.network.P2POverlay;
+import org.controlsfx.dialog.Dialogs;
 
 public class MainApp extends Application {
 
@@ -43,22 +47,25 @@ public class MainApp extends Application {
         Scene loginScene = new Scene(loginRoot);
 
         // Show login screen
-        mainStage.setTitle("Appname");
+        mainStage.setTitle("Skype");
         mainStage.setScene(loginScene);
         mainStage.show();
 
-        // Try to bootstrap and show result on the bottom of the login screen
-        loginController.setMessage(p2p.bootstrap());
-        //o = new OpusSoundTest();
-        //o.start();
-
+        // Try to bootstrap
+        Pair<Boolean, String> result = p2p.bootstrap();
+        if (result.getKey() == false) {
+            Dialogs.create().owner(mainStage)
+                    .title("Bootstrap error")
+                    .message(result.getValue())
+                    .showError();
+            mainStage.close();
+        }
     }
 
-    public boolean createAccount(String userID, String password) {
+    public Pair<Boolean, String> createAccount(String userID, String password) {
         // Check if account exists
         if (p2p.get(userID) != null) {
-            System.out.println("UserID already exists");
-            return false;
+            return new Pair<>(false, "Could not create user account. UserID already taken.");
         }
 
         // Create private UserProfile
@@ -67,28 +74,28 @@ public class MainApp extends Application {
         // TODO: Encrypt it with password
         boolean res = p2p.put(userID + password, userProfile);
         if (res == false) {
-            System.out.println("Could not save private UserProfile");
-            return false;
+            return new Pair<>(false, "Error. Could not save private UserProfile");
         }
 
         // Create public UserProfile
         res = p2p.put(userID, "This is the profile of " + userID);
         if (res) {
-            return true;
+            return new Pair<>(true, "User account for user \"" + userID + "\" successfully created");
         } else {
-            System.out.println("Could not save public UserProfile");
-            return false;
+            return new Pair<>(false, "Network DHT error. Could not save public UserProfile");
         }
     }
 
-    public boolean login(String userID, String password) {
+    public Pair<Boolean, String> login(String userID, String password) {
         Object getResult = p2p.get(userID + password);
+
         if (getResult == null) {
-            return false;
+            return new Pair<>(false, "Login data not valid, Wrong UserID/password?");
         }
 
         userProfile = (UserProfile) getResult;
 
+        // Show new window
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setLocation(getClass().getResource("/fxml/MainScene.fxml"));
@@ -101,7 +108,7 @@ public class MainApp extends Application {
             Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        return true;
+        return new Pair<>(true, "Login successful");
     }
 
     public MainApp() {

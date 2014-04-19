@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.util.Pair;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureGet;
@@ -60,7 +61,7 @@ public class P2POverlay {
         }
     }
 
-    public String bootstrap() {
+    public Pair<Boolean,String> bootstrap() {
         int port = 4001;
 
         boolean peerCreated = false;
@@ -69,21 +70,24 @@ public class P2POverlay {
                 // Create new peer
                 peer = new PeerMaker(new Number160(rnd)).ports(port++).makeAndListen();
                 peerCreated = true;
-            } catch (Exception ex) {
-                System.out.println("Port already in use " + ex.getMessage());
+            } catch (IOException ex) {
+                System.out.println("Port already in use. " + ex.getMessage());
             }
         } while (!peerCreated && port < 4010);
 
         if (!peerCreated) {
-            return "Could not find any unused port :(";
+            return new Pair<>(false,"Could not find any unused port");
         }
 
         try {
             FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("127.0.0.1")).setPorts(4001).start();
             futureBootstrap.awaitUninterruptibly();
-            return "Bootstrapped: " + futureBootstrap.isSuccess();
+            if (futureBootstrap.isSuccess())
+                return new Pair<>(true, "Bootstrap successful");
+            else
+                return new Pair<>(false, "Could not bootstrap to well known peer");
         } catch (UnknownHostException ex) {
-            return "Unknown host";
+            return new Pair<>(false, "Unknown bootstrap host. (UnknownHostException)");
         }
 
     }
