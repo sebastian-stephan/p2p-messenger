@@ -22,6 +22,7 @@ import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.builder.ShutdownBuilder;
 import net.tomp2p.peers.Number160;
+import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 
 /**
@@ -32,6 +33,10 @@ public class P2POverlay {
 
     private Peer peer;
     private static Random rnd = new Random();
+    
+    public PeerAddress getPeerAddress() {
+        return peer.getPeerAddress();
+    }
     
     public boolean put(String key, Object value) {
         Data data;

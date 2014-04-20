@@ -81,7 +81,11 @@ public class MainApp extends Application {
         }
 
         // Create public UserProfile
-        res = p2p.put(userID, "This is the profile of " + userID);
+        PublicUserProfile publicUserProfile;
+        publicUserProfile = new PublicUserProfile(userID, userProfile.getKeyPair().getPublic(),
+                p2p.getPeerAddress());
+
+        res = p2p.put(userID, publicUserProfile);
         if (res) {
             return new Pair<>(true, "User account for user \"" + userID + "\" successfully created");
         } else {
@@ -110,13 +114,24 @@ public class MainApp extends Application {
         } catch (IOException ex) {
             Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
+        // Update public profile with current IP Address
+        Object objectPublicUserProfile = p2p.get(userID);
+        if (objectPublicUserProfile == null) {
+            return new Pair<>(false, "Could not retrieve public userprofile");
+        }
+        PublicUserProfile publicUserProfile = (PublicUserProfile) objectPublicUserProfile;
+        publicUserProfile.setPeerAddress(p2p.getPeerAddress());
+        if (p2p.put(userID, publicUserProfile) == false) {
+            return new Pair<>(false, "Could not update peer address in public user profile");
+        }
+
         // Set the FriendsList UI to show the friends in the profile
         mainController.setFriendsList(FXCollections.observableList(userProfile.getFriendsList()));
 
         return new Pair<>(true, "Login successful");
     }
-    
+
     public List<String> getFriendsList() {
         return userProfile.getFriendsList();
     }
@@ -141,8 +156,28 @@ public class MainApp extends Application {
         logout();
     }
 
+    /*
+     Gracefully disconnect from network
+     */
     public void logout() {
-        //o.stop();
+        // TODO: Tell "friends" that i'm going offline
+
+        // Set PeerAddress in public Profile to null
+        Object objectPublicUserProfile = p2p.get(userProfile.getUserID());
+        if (objectPublicUserProfile == null) {
+            System.out.println("Could not retrieve public userprofile");
+            return;
+        }
+        PublicUserProfile publicUserProfile = (PublicUserProfile) objectPublicUserProfile;
+        publicUserProfile.setPeerAddress(null);
+        if (p2p.put(userProfile.getUserID(), publicUserProfile) == false) {
+            System.out.println("Could not update peer address in public user profile");
+            return;
+        }
+        
+        System.out.println("PeerAddress set to null in public profile");
+
+        // Shutdown Tom P2P stuff
         p2p.shutdown();
     }
 
