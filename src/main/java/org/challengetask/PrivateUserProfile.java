@@ -29,7 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class PrivateUserProfile implements Serializable {
     private final String userID;
     private final String password;
-    private List<String> friendsList;
+    private List<FriendsListEntry> friendsList;
     
     private KeyPair keyPair;
     
@@ -47,11 +47,17 @@ public class PrivateUserProfile implements Serializable {
         }
         
         // Create new friendsList with some fake data
-        friendsList = new ArrayList<String>();
-        friendsList.add("Tony Montana");
-        friendsList.add("John Rambo");
-        friendsList.add("Darth Vader");
-        friendsList.add("Hannibal Lector");
+        friendsList = new ArrayList<FriendsListEntry>();
+        FriendsListEntry fakeFriend1 = new FriendsListEntry("Online Friend", true);
+        FriendsListEntry fakeFriend2 = new FriendsListEntry("Pending Request Friend", false);
+        FriendsListEntry fakeFriend3 = new FriendsListEntry("Offline Friend 1", true);
+        FriendsListEntry fakeFriend4 = new FriendsListEntry("Offline Friend 2", true);
+        fakeFriend1.setOnline(true);
+        friendsList.add(fakeFriend1);
+        friendsList.add(fakeFriend2);
+        friendsList.add(fakeFriend3);
+        friendsList.add(fakeFriend4);
+
         
     }
     
@@ -87,7 +93,7 @@ public class PrivateUserProfile implements Serializable {
     /**
      * @return the friendsList
      */
-    public List<String> getFriendsList() {
+    public List<FriendsListEntry> getFriendsList() {
         return friendsList;
     }
 

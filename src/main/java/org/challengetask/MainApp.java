@@ -132,7 +132,7 @@ public class MainApp extends Application {
         return new Pair<>(true, "Login successful");
     }
 
-    public List<String> getFriendsList() {
+    public List<FriendsListEntry> getFriendsList() {
         return userProfile.getFriendsList();
     }
 
