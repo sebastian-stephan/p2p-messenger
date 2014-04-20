@@ -26,14 +26,14 @@ import javax.crypto.spec.SecretKeySpec;
  *
  * @author sstephan
  */
-public class UserProfile implements Serializable {
+public class PrivateUserProfile implements Serializable {
     private final String userID;
     private final String password;
     private List<String> friendsList;
     
     private KeyPair keyPair;
     
-    public UserProfile(String _userID, String _password) {
+    public PrivateUserProfile(String _userID, String _password) {
         userID = _userID;
         password = _password;
         

@@ -32,7 +32,7 @@ public class MainApp extends Application {
     private P2POverlay p2p;
     private OpusSoundTest o;
 
-    private UserProfile userProfile;
+    private PrivateUserProfile userProfile;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -72,7 +72,7 @@ public class MainApp extends Application {
         }
 
         // Create private UserProfile
-        userProfile = new UserProfile(userID, password);
+        userProfile = new PrivateUserProfile(userID, password);
 
         // TODO: Encrypt it with password
         boolean res = p2p.put(userID + password, userProfile);
@@ -100,7 +100,7 @@ public class MainApp extends Application {
             return new Pair<>(false, "Login data not valid, Wrong UserID/password?");
         }
 
-        userProfile = (UserProfile) getResult;
+        userProfile = (PrivateUserProfile) getResult;
 
         // Show main window
         try {
