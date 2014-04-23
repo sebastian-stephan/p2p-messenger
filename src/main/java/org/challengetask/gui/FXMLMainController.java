@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -20,6 +22,7 @@ import javafx.scene.shape.Circle;
 import javafx.util.Callback;
 import org.challengetask.FriendsListEntry;
 import org.challengetask.MainApp;
+import org.controlsfx.control.Notifications;
 
 public class FXMLMainController implements Initializable {
 
@@ -54,7 +57,7 @@ public class FXMLMainController implements Initializable {
         });
     }
 
-    static class FriendsListCell extends ListCell<FriendsListEntry> {
+    class FriendsListCell extends ListCell<FriendsListEntry> {
 
         @Override
         public void updateItem(FriendsListEntry _item, boolean _empty) {
@@ -76,11 +79,23 @@ public class FXMLMainController implements Initializable {
 
                 if (_item.isOnline() && _item.isFriendshipConfiremed()) {
                     circle.setFill(Color.GREEN);
-                    rightHbox.getChildren().add(new Button("Call"));
+                    Button callButton = new Button("Call");
+                    callButton.getStyleClass().add("callButton");
+                    callButton.setOnAction(new EventHandler<ActionEvent>() {
+
+                        @Override
+                        public void handle(ActionEvent event) {
+                            mainApp.call(_item.getUserID());
+                            Notifications.create().title("Call")
+                                    .text("Calling " + _item.getUserID())
+                                    .show();
+                        }
+
+                    });
+                    rightHbox.getChildren().add(callButton);
                 } else if (!_item.isFriendshipConfiremed()) {
                     circle.setFill(Color.YELLOW);
                 }
-
 
                 leftHbox.getChildren().addAll(circle, label, rightHbox);
                 setGraphic(leftHbox);

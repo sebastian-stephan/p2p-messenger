@@ -138,6 +138,10 @@ public class MainApp extends Application {
 
     public MainApp() {
     }
+    
+    public void call(String userID) {
+        
+    }
 
     /**
      * The main() method is ignored in correctly deployed JavaFX application.
