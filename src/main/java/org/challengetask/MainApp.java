@@ -153,20 +153,27 @@ public class MainApp extends Application {
         if (!existsUser(userID)) {
             return new Pair<>(false, "User was not found");
         }
-        
+
         // TODO: FriendRequest: check if user is online try to send friend request 
         // directlyif that fails, append the friend request message to the user's
         // public profile
-        
         // Add to friendsList
         friendsList.add(new FriendsListEntry(userID));
-        
+
         // Save profile in the DHT
         if (savePrivateUserProfile() == false) {
             return new Pair<>(false, "Error, saving the private User Profile");
         }
-        
+
         return new Pair<>(true, "Friend request to " + userID + " was sent");
+    }
+
+    public Pair<Boolean, String> removeFriend(String userID) {
+        if (friendsList.remove(userID) && savePrivateUserProfile()) {
+            return new Pair<>(true, "Friend removed");
+        } else {
+            return new Pair<>(false, "Could not remove friend");
+        }
     }
 
     /**
@@ -210,10 +217,10 @@ public class MainApp extends Application {
         // Shutdown Tom P2P stuff
         p2p.shutdown();
     }
-    
+
     private boolean savePrivateUserProfile() {
         // TODO: encrypt before saving
-        
+
         return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
     }
 
