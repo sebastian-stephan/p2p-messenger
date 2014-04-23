@@ -55,6 +55,11 @@
     -fx-font-size: 15px;
 }
 
+#topMenuHBox {
+    -fx-padding: 10 10 10 10;
+    -fx-spacing: 10;
+}
+
 #labelErrorMessage {
     -fx-text-fill: indianred;
 }

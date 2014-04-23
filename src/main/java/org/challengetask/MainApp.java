@@ -11,7 +11,9 @@ import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -33,6 +35,7 @@ public class MainApp extends Application {
     private OpusSoundTest o;
 
     private PrivateUserProfile userProfile;
+    private ObservableList<FriendsListEntry> friendsList;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -75,8 +78,7 @@ public class MainApp extends Application {
         userProfile = new PrivateUserProfile(userID, password);
 
         // TODO: Encrypt it with password
-        boolean res = p2p.put(userID + password, userProfile);
-        if (res == false) {
+        if (savePrivateUserProfile() == false) {
             return new Pair<>(false, "Error. Could not save private UserProfile");
         }
 
@@ -85,8 +87,7 @@ public class MainApp extends Application {
         publicUserProfile = new PublicUserProfile(userID, userProfile.getKeyPair().getPublic(),
                 p2p.getPeerAddress());
 
-        res = p2p.put(userID, publicUserProfile);
-        if (res) {
+        if (p2p.put(userID, publicUserProfile)) {
             return new Pair<>(true, "User account for user \"" + userID + "\" successfully created");
         } else {
             return new Pair<>(false, "Network DHT error. Could not save public UserProfile");
@@ -127,7 +128,8 @@ public class MainApp extends Application {
         }
 
         // Set the FriendsList UI to show the friends in the profile
-        mainController.setFriendsList(FXCollections.observableList(userProfile.getFriendsList()));
+        friendsList = FXCollections.observableList(userProfile.getFriendsList());
+        mainController.setFriendsList(friendsList);
 
         return new Pair<>(true, "Login successful");
     }
@@ -152,10 +154,18 @@ public class MainApp extends Application {
             return new Pair<>(false, "User was not found");
         }
         
-        // TODO: check if user is online try to send friend request directly
-        // if that fails, append the friend request message to the user's public
-        // profile
-
+        // TODO: FriendRequest: check if user is online try to send friend request 
+        // directlyif that fails, append the friend request message to the user's
+        // public profile
+        
+        // Add to friendsList
+        friendsList.add(new FriendsListEntry(userID));
+        
+        // Save profile in the DHT
+        if (savePrivateUserProfile() == false) {
+            return new Pair<>(false, "Error, saving the private User Profile");
+        }
+        
         return new Pair<>(true, "Friend request to " + userID + " was sent");
     }
 
@@ -199,6 +209,12 @@ public class MainApp extends Application {
 
         // Shutdown Tom P2P stuff
         p2p.shutdown();
+    }
+    
+    private boolean savePrivateUserProfile() {
+        // TODO: encrypt before saving
+        
+        return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
     }
 
 }

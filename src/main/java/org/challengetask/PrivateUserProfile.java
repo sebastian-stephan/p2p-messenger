@@ -48,15 +48,13 @@ public class PrivateUserProfile implements Serializable {
         
         // Create new friendsList with some fake data
         friendsList = new ArrayList<FriendsListEntry>();
-        FriendsListEntry fakeFriend1 = new FriendsListEntry("Online Friend", true);
-        FriendsListEntry fakeFriend2 = new FriendsListEntry("Pending Request Friend", false);
-        FriendsListEntry fakeFriend3 = new FriendsListEntry("Offline Friend 1", true);
-        FriendsListEntry fakeFriend4 = new FriendsListEntry("Offline Friend 2", true);
+        FriendsListEntry fakeFriend1 = new FriendsListEntry("Online Friend");
+        FriendsListEntry fakeFriend2 = new FriendsListEntry("Offline Friend 1");
+        FriendsListEntry fakeFriend3 = new FriendsListEntry("Offline Friend 2");
         fakeFriend1.setOnline(true);
         friendsList.add(fakeFriend1);
         friendsList.add(fakeFriend2);
         friendsList.add(fakeFriend3);
-        friendsList.add(fakeFriend4);
 
         
     }

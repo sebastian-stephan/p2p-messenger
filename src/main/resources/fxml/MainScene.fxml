@@ -20,9 +20,9 @@
         </AnchorPane>
       </center>
       <top>
-        <HBox>
+        <HBox id="topMenuHBox">
           <children>
-            <Label fx:id="messageLabel" text="main application" />
+            <Button id="buttonAddFriend" mnemonicParsing="false" onAction="#handleAddFriendButtonClick" text="Add Friend" />
           </children>
         </HBox>
       </top>

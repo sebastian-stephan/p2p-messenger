@@ -72,10 +72,10 @@ public class FXMLMainController implements Initializable {
                 HBox.setHgrow(rightHbox, Priority.ALWAYS);
 
                 Label label = new Label(_item.getUserID());
-                Circle circle = new Circle(5);
+                Circle circle = new Circle(8);
                 circle.setFill(Color.GREY);
 
-                if (_item.isOnline() && _item.isFriendshipConfiremed()) {
+                if (_item.isOnline()) {
                     circle.setFill(Color.GREEN);
                     Button callButton = new Button("Call");
                     callButton.getStyleClass().add("callButton");
@@ -91,8 +91,6 @@ public class FXMLMainController implements Initializable {
 
                     });
                     rightHbox.getChildren().add(callButton);
-                } else if (!_item.isFriendshipConfiremed()) {
-                    circle.setFill(Color.YELLOW);
                 }
 
                 leftHbox.getChildren().addAll(circle, label, rightHbox);

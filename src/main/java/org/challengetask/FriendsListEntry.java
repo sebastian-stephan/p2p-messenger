@@ -17,15 +17,9 @@ public class FriendsListEntry implements Serializable {
     private final String userID;
     private PeerAddress peerAddress;
     private boolean online = false;
-    private boolean friendshipConfirmed = false;
 
     public FriendsListEntry(String _userID) {
         userID = _userID;
-    }
-    
-    public FriendsListEntry(String _userID, boolean _friendshipConfirmed) {
-        this(_userID);
-        friendshipConfirmed = _friendshipConfirmed;
     }
     
     /**
@@ -63,17 +57,4 @@ public class FriendsListEntry implements Serializable {
         this.online = online;
     }
 
-    /**
-     * @return the friendshipConfiremed
-     */
-    public boolean isFriendshipConfiremed() {
-        return friendshipConfirmed;
-    }
-
-    /**
-     * @param friendshipConfiremed the friendshipConfiremed to set
-     */
-    public void setFriendshipConfiremed(boolean friendshipConfiremed) {
-        this.friendshipConfirmed = friendshipConfiremed;
-    }
 }
