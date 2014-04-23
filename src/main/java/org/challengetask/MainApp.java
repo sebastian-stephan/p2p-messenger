@@ -138,9 +138,25 @@ public class MainApp extends Application {
 
     public MainApp() {
     }
-    
+
     public void call(String userID) {
+        // TODO
+    }
+
+    public boolean existsUser(String userID) {
+        return (p2p.get(userID) != null);
+    }
+
+    public Pair<Boolean, String> addFriend(String userID, String messageText) {
+        if (!existsUser(userID)) {
+            return new Pair<>(false, "User was not found");
+        }
         
+        // TODO: check if user is online try to send friend request directly
+        // if that fails, append the friend request message to the user's public
+        // profile
+
+        return new Pair<>(true, "Friend request to " + userID + " was sent");
     }
 
     /**
@@ -178,7 +194,7 @@ public class MainApp extends Application {
             System.out.println("Could not update peer address in public user profile");
             return;
         }
-        
+
         System.out.println("PeerAddress set to null in public profile");
 
         // Shutdown Tom P2P stuff

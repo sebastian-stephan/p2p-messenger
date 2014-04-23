@@ -20,25 +20,23 @@ import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
+import javafx.util.Pair;
 import org.challengetask.FriendsListEntry;
 import org.challengetask.MainApp;
 import org.controlsfx.control.Notifications;
+import org.controlsfx.dialog.Dialogs;
 
 public class FXMLMainController implements Initializable {
 
     private MainApp mainApp;
 
     @FXML
-    private Label messageLabel;
+    private Button buttonAddFriend;
     @FXML
     private ListView friendsList;
 
     public void setApplication(MainApp _mainApp) {
         mainApp = _mainApp;
-    }
-
-    public void setMessage(String message) {
-        messageLabel.setText(message);
     }
 
     public void setFriendsList(ObservableList observableFriendsList) {
@@ -99,6 +97,39 @@ public class FXMLMainController implements Initializable {
 
                 leftHbox.getChildren().addAll(circle, label, rightHbox);
                 setGraphic(leftHbox);
+            }
+        }
+    }
+
+    @FXML
+    private void handleAddFriendButtonClick(ActionEvent event) {
+        Dialogs addUserDialog = Dialogs.create()
+                .title("Add new friend")
+                .message("Please enter the UserID of the person you want to add");
+        String userID = addUserDialog.showTextInput();
+        if (userID != null && !userID.isEmpty()) {
+            if (mainApp.existsUser(userID) == false) {
+                Dialogs.create()
+                        .title("Add new friend")
+                        .message("Could not find the user " + userID)
+                        .showError();
+            } else {
+                // Ask for a message
+                String addMessage = Dialogs.create()
+                        .title("Add new friend")
+                        .message("Please enter a message")
+                        .showTextInput("Hey " + userID + ",\n\n please accept my friend request.");
+                if (addMessage != null && !addMessage.isEmpty()) {
+                    Pair<Boolean, String> result = mainApp.addFriend(userID, addMessage);
+                    Dialogs resultDialog = Dialogs.create()
+                            .title("Add new friend")
+                            .masthead(null)
+                            .message(result.getValue());
+                    if (result.getKey() == true)
+                        resultDialog.showInformation();
+                    else
+                        resultDialog.showError();
+                }
             }
         }
     }
