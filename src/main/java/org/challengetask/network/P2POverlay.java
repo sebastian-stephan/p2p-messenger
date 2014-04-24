@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 import javafx.util.Pair;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
+import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.futures.FutureGet;
 import net.tomp2p.futures.FuturePut;
 import net.tomp2p.p2p.Peer;
@@ -66,6 +67,13 @@ public class P2POverlay {
         }
     }
 
+    public boolean send(PeerAddress recipient, Object o) {
+        FutureDirect futureDirect = peer.sendDirect(recipient)
+                .setObject(o).start().awaitUninterruptibly();
+        
+        return futureDirect.isSuccess();
+    }
+    
     public Pair<Boolean,String> bootstrap() {
         int port = 4001;
 

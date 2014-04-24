@@ -71,6 +71,9 @@ public class MainApp extends Application {
     }
 
     public Pair<Boolean, String> createAccount(String userID, String password) {
+        // Check if the user is already in the friendslist
+        
+        
         // Check if account exists
         if (p2p.get(userID) != null) {
             return new Pair<>(false, "Could not create user account. UserID already taken.");
@@ -87,7 +90,7 @@ public class MainApp extends Application {
         // Create public UserProfile
         PublicUserProfile publicUserProfile;
         publicUserProfile = new PublicUserProfile(userID, userProfile.getKeyPair().getPublic(),
-                p2p.getPeerAddress());
+                null);
 
         if (p2p.put(userID, publicUserProfile)) {
             return new Pair<>(true, "User account for user \"" + userID + "\" successfully created");
@@ -152,6 +155,10 @@ public class MainApp extends Application {
     }
 
     public Pair<Boolean, String> addFriend(String userID, String messageText) {
+        if (isUserInFriendsList(userID)) {
+            return new Pair<>(false, "User already in friendslist");
+        }
+        
         if (!existsUser(userID)) {
             return new Pair<>(false, "User was not found");
         }
@@ -159,6 +166,16 @@ public class MainApp extends Application {
         // TODO: FriendRequest: check if user is online try to send friend request 
         // directlyif that fails, append the friend request message to the user's
         // public profile
+        PublicUserProfile friendProfile = (PublicUserProfile)p2p.get(userID);
+        // Try to send direct if possible
+        if (friendProfile.getPeerAddress() != null) {
+            if (p2p.send(friendProfile.getPeerAddress(), messageText) == false) {
+                return new Pair<>(false, "Error sending friend request");
+            }
+        } else {
+            return new Pair<>(false, "Friend doesn't seem to be online");
+        }
+        
         // Add to friendsList
         friendsList.add(new FriendsListEntry(userID));
 
@@ -235,4 +252,12 @@ public class MainApp extends Application {
         return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
     }
 
+    private boolean isUserInFriendsList(String userID) {
+        for (FriendsListEntry e : friendsList) {
+            if (e.getUserID().equals(userID)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
