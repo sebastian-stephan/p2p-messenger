@@ -25,6 +25,7 @@ import javafx.util.Callback;
 import javafx.util.Pair;
 import org.challengetask.FriendsListEntry;
 import org.challengetask.MainApp;
+import org.challengetask.network.FriendRequestMessage;
 import org.controlsfx.control.Notifications;
 import org.controlsfx.dialog.Dialogs;
 
@@ -43,6 +44,13 @@ public class FXMLMainController implements Initializable {
 
     public void setFriendsList(ObservableList observableFriendsList) {
         friendsList.setItems(observableFriendsList);
+    }
+    
+    public void showIncomingFriendRequest(FriendRequestMessage requestMessage) {
+        Notifications.create().title("Incoming friend request")
+                .text("User \"" + requestMessage.getSenderUserID() + " wants " +
+                        " to add you: " + requestMessage.getMessageText())
+                .showInformation();
     }
 
     @Override

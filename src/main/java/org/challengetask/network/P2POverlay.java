@@ -24,6 +24,7 @@ import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.builder.ShutdownBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.rpc.ObjectDataReply;
 import net.tomp2p.storage.Data;
 
 /**
@@ -93,11 +94,9 @@ public class P2POverlay {
             return new Pair<>(false,"Could not find any unused port");
         }
         
-        // Attach reply handler
-        peer.setObjectDataReply(new ObjectReplyHandler());
 
         try {
-            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("192.168.1.34")).setPorts(4001).start();
+            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("127.0.0.1")).setPorts(4001).start();
             futureBootstrap.awaitUninterruptibly();
             if (futureBootstrap.isSuccess())
                 return new Pair<>(true, "Bootstrap successful");
@@ -108,6 +107,10 @@ public class P2POverlay {
         }
         
     }
+    
+    public void setObjectDataReply(ObjectDataReply replyHandler) {
+        peer.setObjectDataReply(replyHandler);
+    } 
 
     public void shutdown() {
         System.out.println("Shutting down...");
