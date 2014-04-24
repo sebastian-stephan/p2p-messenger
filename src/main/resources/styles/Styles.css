@@ -5,7 +5,12 @@
 
 .label {
     -fx-text-fill: #4B5B6E;
-    -fx-font-size: 12px;
+    -fx-font-size: 10pt;
+}
+
+#labelUserIDTitel {
+    -fx-font-size: 20pt;
+    -fx-text-fill: #0077DB;
 }
 
 .invalid {

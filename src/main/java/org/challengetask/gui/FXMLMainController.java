@@ -32,6 +32,8 @@ public class FXMLMainController implements Initializable {
     private MainApp mainApp;
 
     @FXML
+    private Label labelUserIDTitel;
+    @FXML
     private Button buttonAddFriend;
     @FXML
     private ListView friendsList;
@@ -42,6 +44,10 @@ public class FXMLMainController implements Initializable {
 
     public void setFriendsList(ObservableList observableFriendsList) {
         friendsList.setItems(observableFriendsList);
+    }
+    
+    public void setTitleText(String s) {
+        labelUserIDTitel.setText(s);
     }
     
     public void showIncomingFriendRequest(FriendRequestMessage requestMessage) {
@@ -56,6 +62,7 @@ public class FXMLMainController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        // Set up custom friendslist
         friendsList.setCellFactory(new Callback<ListView<FriendsListEntry>, ListCell<FriendsListEntry>>() {
 
             @Override
@@ -155,14 +162,13 @@ public class FXMLMainController implements Initializable {
                         .showTextInput("Hey " + userID + ",\n\n please accept my friend request.");
                 if (addMessage != null && !addMessage.isEmpty()) {
                     Pair<Boolean, String> result = mainApp.addFriend(userID, addMessage);
-                    Dialogs resultDialog = Dialogs.create()
+                    Notifications resultNotification = Notifications.create()
                             .title("Add new friend")
-                            .masthead(null)
-                            .message(result.getValue());
+                            .text(result.getValue());
                     if (result.getKey() == true) {
-                        resultDialog.showInformation();
+                        resultNotification.showInformation();
                     } else {
-                        resultDialog.showError();
+                        resultNotification.showError();
                     }
                 }
             }

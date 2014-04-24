@@ -113,19 +113,6 @@ public class MainApp extends Application {
         // Get userprofile
         userProfile = (PrivateUserProfile) getResult;
 
-        // Show main window
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader();
-            fxmlLoader.setLocation(getClass().getResource("/fxml/MainScene.fxml"));
-            Parent mainRoot = fxmlLoader.load();
-            mainController = fxmlLoader.getController();
-            mainController.setApplication(this);
-            Scene mainScene = new Scene(mainRoot);
-            mainStage.setScene(mainScene);
-        } catch (IOException ex) {
-            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         // Update public profile with current IP Address
         Object objectPublicUserProfile = p2p.get(userID);
         if (objectPublicUserProfile == null) {
@@ -136,13 +123,29 @@ public class MainApp extends Application {
         if (p2p.put(userID, publicUserProfile) == false) {
             return new Pair<>(false, "Could not update peer address in public user profile");
         }
-
+        
         // Set the FriendsList UI to show the friends in the profile
         friendsList = FXCollections.observableList(userProfile.getFriendsList());
-        mainController.setFriendsList(friendsList);
         
+                
         // Set reply handler
         p2p.setObjectDataReply(new ObjectReplyHandler(this));
+        
+        
+        // Show main window
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("/fxml/MainScene.fxml"));
+            Parent mainRoot = fxmlLoader.load();
+            mainController = fxmlLoader.getController();
+            mainController.setApplication(this);
+            mainController.setFriendsList(friendsList);
+            mainController.setTitleText(userID);
+            Scene mainScene = new Scene(mainRoot);
+            mainStage.setScene(mainScene);
+        } catch (IOException ex) {
+            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         return new Pair<>(true, "Login successful");
     }
@@ -151,8 +154,6 @@ public class MainApp extends Application {
         return userProfile.getFriendsList();
     }
 
-    public MainApp() {
-    }
 
     public void call(String userID) {
         // TODO
@@ -209,6 +210,10 @@ public class MainApp extends Application {
     
     public void handleIncomingFriendRequest(FriendRequestMessage requestMessage) {
         mainController.showIncomingFriendRequest(requestMessage);
+    }
+    
+    public String getUserID() {
+        return (userProfile != null)? userProfile.getUserID() : "error";
     }
 
     /**

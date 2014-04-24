@@ -9,7 +9,7 @@
 <?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="441.0" prefWidth="300.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLMainController">
+<AnchorPane id="AnchorPane" maxHeight="-1.0" maxWidth="-1.0" prefHeight="441.0" prefWidth="350.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLMainController">
   <children>
     <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <center>
@@ -20,11 +20,12 @@
         </AnchorPane>
       </center>
       <top>
-        <HBox id="topMenuHBox">
+        <HBox id="topMenuHBox" BorderPane.alignment="CENTER_LEFT">
           <children>
-            <Button fx:id="buttonAddFriend" mnemonicParsing="false" onAction="#handleAddFriendButtonClick" text="Add Friend" />
-            <HBox alignment="TOP_RIGHT" prefHeight="-1.0" prefWidth="-1.0" HBox.hgrow="ALWAYS">
+            <Label fx:id="labelUserIDTitel" text="userID" />
+            <HBox alignment="TOP_RIGHT" prefHeight="-1.0" prefWidth="-1.0" spacing="10.0" HBox.hgrow="ALWAYS">
               <children>
+                <Button fx:id="buttonAddFriend" mnemonicParsing="false" onAction="#handleAddFriendButtonClick" text="Add Friend" />
                 <Button fx:id="buttonLogout" mnemonicParsing="false" onAction="#handleLogoutButtonClick" text="Logout" />
               </children>
             </HBox>
