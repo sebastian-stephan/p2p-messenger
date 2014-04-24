@@ -12,9 +12,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
@@ -95,6 +97,31 @@ public class FXMLMainController implements Initializable {
 
                 leftHbox.getChildren().addAll(circle, label, rightHbox);
                 setGraphic(leftHbox);
+
+                // Context menu to remove friends
+                MenuItem removeMenu = new MenuItem("Remove");
+                removeMenu.setOnAction(new EventHandler<ActionEvent>() {
+
+                    @Override
+                    public void handle(ActionEvent event) {
+                        Pair<Boolean, String> result = mainApp.removeFriend(_item);
+                        Notifications resultNotification = Notifications.create()
+                                .title("Remove friend")
+                                .text(result.getValue());
+                        if (result.getKey() == true) {
+                            resultNotification.showInformation();
+                        } else {
+                            resultNotification.showError();
+                        }
+                    }
+
+                });
+                ContextMenu contextMenu = new ContextMenu(removeMenu);
+                setContextMenu(contextMenu);
+
+            } else {
+                setGraphic(null);
+                setText(null);
             }
         }
     }
@@ -123,10 +150,11 @@ public class FXMLMainController implements Initializable {
                             .title("Add new friend")
                             .masthead(null)
                             .message(result.getValue());
-                    if (result.getKey() == true)
+                    if (result.getKey() == true) {
                         resultDialog.showInformation();
-                    else
+                    } else {
                         resultDialog.showError();
+                    }
                 }
             }
         }

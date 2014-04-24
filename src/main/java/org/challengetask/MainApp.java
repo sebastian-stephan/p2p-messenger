@@ -168,8 +168,8 @@ public class MainApp extends Application {
         return new Pair<>(true, "Friend request to " + userID + " was sent");
     }
 
-    public Pair<Boolean, String> removeFriend(String userID) {
-        if (friendsList.remove(userID) && savePrivateUserProfile()) {
+    public Pair<Boolean, String> removeFriend(FriendsListEntry friendEntry) {
+        if (friendsList.remove(friendEntry) && savePrivateUserProfile()) {
             return new Pair<>(true, "Friend removed");
         } else {
             return new Pair<>(false, "Could not remove friend");
