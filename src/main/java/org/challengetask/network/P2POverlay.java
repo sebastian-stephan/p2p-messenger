@@ -34,10 +34,6 @@ public class P2POverlay {
     private Peer peer;
     private static Random rnd = new Random();
     
-    public P2POverlay() {
-        peer.setObjectDataReply(new ObjectReplyHandler());
-    }
-    
     public PeerAddress getPeerAddress() {
         return peer.getPeerAddress();
     }
@@ -73,6 +69,7 @@ public class P2POverlay {
     public Pair<Boolean,String> bootstrap() {
         int port = 4001;
 
+        // Create TomP2P peer
         boolean peerCreated = false;
         do {
             try {
@@ -87,6 +84,9 @@ public class P2POverlay {
         if (!peerCreated) {
             return new Pair<>(false,"Could not find any unused port");
         }
+        
+        // Attach reply handler
+        peer.setObjectDataReply(new ObjectReplyHandler());
 
         try {
             FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("192.168.1.34")).setPorts(4001).start();
