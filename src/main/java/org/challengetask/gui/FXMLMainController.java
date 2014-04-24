@@ -15,17 +15,23 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
 import javafx.util.Callback;
 import javafx.util.Pair;
 import org.challengetask.FriendsListEntry;
 import org.challengetask.MainApp;
 import org.challengetask.network.FriendRequestMessage;
 import org.controlsfx.control.Notifications;
+import org.controlsfx.control.PopOver;
 import org.controlsfx.dialog.Dialogs;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 
 public class FXMLMainController implements Initializable {
 
@@ -33,6 +39,10 @@ public class FXMLMainController implements Initializable {
 
     @FXML
     private Label labelUserIDTitel;
+    @FXML
+    private Button buttonLogout;
+    @FXML
+    private Button buttonFriendRequests;
     @FXML
     private Button buttonAddFriend;
     @FXML
@@ -71,6 +81,13 @@ public class FXMLMainController implements Initializable {
             }
 
         });
+        
+        // Add fancy icons to the buttons
+        buttonAddFriend.setGraphic(GlyphFontRegistry.glyph("FontAwesome|PLUS"));
+        buttonLogout.setGraphic(GlyphFontRegistry.glyph("FontAwesome|SIGNOUT"));
+        buttonFriendRequests.setGraphic(GlyphFontRegistry.glyph("FontAwesome|USER"));
+     
+
     }
 
     class FriendsListCell extends ListCell<FriendsListEntry> {
@@ -97,6 +114,7 @@ public class FXMLMainController implements Initializable {
                     circle.setFill(Color.GREEN);
                     Button callButton = new Button("Call");
                     callButton.getStyleClass().add("callButton");
+                    callButton.setGraphic(GlyphFontRegistry.glyph("FontAwesome|PHONE"));
                     callButton.setOnAction(new EventHandler<ActionEvent>() {
 
                         @Override
@@ -179,4 +197,5 @@ public class FXMLMainController implements Initializable {
     private void handleLogoutButtonClick(ActionEvent event) {
         mainApp.logout();
     }
+    
 }

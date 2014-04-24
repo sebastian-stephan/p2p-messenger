@@ -23,10 +23,11 @@
         <HBox id="topMenuHBox" BorderPane.alignment="CENTER_LEFT">
           <children>
             <Label fx:id="labelUserIDTitel" text="userID" />
-            <HBox alignment="TOP_RIGHT" prefHeight="-1.0" prefWidth="-1.0" spacing="10.0" HBox.hgrow="ALWAYS">
+            <HBox alignment="TOP_RIGHT" disable="false" prefHeight="-1.0" prefWidth="-1.0" spacing="10.0" HBox.hgrow="ALWAYS">
               <children>
-                <Button fx:id="buttonAddFriend" mnemonicParsing="false" onAction="#handleAddFriendButtonClick" text="Add Friend" />
-                <Button fx:id="buttonLogout" mnemonicParsing="false" onAction="#handleLogoutButtonClick" text="Logout" />
+                <Button fx:id="buttonFriendRequests" mnemonicParsing="false" text="" />
+                <Button fx:id="buttonAddFriend" mnemonicParsing="false" onAction="#handleAddFriendButtonClick" text="Add" />
+                <Button fx:id="buttonLogout" mnemonicParsing="false" onAction="#handleLogoutButtonClick" text="" />
               </children>
             </HBox>
           </children>
