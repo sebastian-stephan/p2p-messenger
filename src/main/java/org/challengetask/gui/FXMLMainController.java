@@ -47,10 +47,8 @@ public class FXMLMainController implements Initializable {
     }
     
     public void showIncomingFriendRequest(FriendRequestMessage requestMessage) {
-        Notifications.create().title("Incoming friend request")
-                .text("User \"" + requestMessage.getSenderUserID() + " wants " +
-                        " to add you: " + requestMessage.getMessageText())
-                .showInformation();
+        System.out.println("User \"" + requestMessage.getSenderUserID() + " wants " +
+                        " to add you: " + requestMessage.getMessageText());
     }
 
     @Override
