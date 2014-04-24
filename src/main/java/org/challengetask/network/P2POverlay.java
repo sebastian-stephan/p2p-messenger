@@ -34,6 +34,10 @@ public class P2POverlay {
     private Peer peer;
     private static Random rnd = new Random();
     
+    public P2POverlay() {
+        peer.setObjectDataReply(new ObjectReplyHandler());
+    }
+    
     public PeerAddress getPeerAddress() {
         return peer.getPeerAddress();
     }
@@ -85,7 +89,7 @@ public class P2POverlay {
         }
 
         try {
-            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("127.0.0.1")).setPorts(4001).start();
+            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("192.168.1.34")).setPorts(4001).start();
             futureBootstrap.awaitUninterruptibly();
             if (futureBootstrap.isSuccess())
                 return new Pair<>(true, "Bootstrap successful");
@@ -94,7 +98,7 @@ public class P2POverlay {
         } catch (UnknownHostException ex) {
             return new Pair<>(false, "Unknown bootstrap host. (UnknownHostException)");
         }
-
+        
     }
 
     public void shutdown() {
