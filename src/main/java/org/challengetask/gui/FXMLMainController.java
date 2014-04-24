@@ -159,4 +159,9 @@ public class FXMLMainController implements Initializable {
             }
         }
     }
+    
+    @FXML
+    private void handleLogoutButtonClick(ActionEvent event) {
+        mainApp.logout();
+    }
 }

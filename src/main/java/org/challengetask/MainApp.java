@@ -29,8 +29,10 @@ import org.controlsfx.dialog.Dialogs;
 public class MainApp extends Application {
 
     private Stage mainStage;
+    private Scene loginScene;
     private FXMLLoginController loginController;
     private FXMLMainController mainController;
+    
     private P2POverlay p2p;
     private OpusSoundTest o;
 
@@ -50,7 +52,7 @@ public class MainApp extends Application {
         Parent loginRoot = fxmlLoader.load();
         loginController = fxmlLoader.getController();
         loginController.setApplication(this);
-        Scene loginScene = new Scene(loginRoot);
+        loginScene = new Scene(loginRoot);
 
         // Show login screen
         mainStage.setTitle("Skype");
@@ -190,12 +192,9 @@ public class MainApp extends Application {
 
     @Override
     public void stop() {
-        logout();
+        shutdown();
     }
 
-    /*
-     Gracefully disconnect from network
-     */
     public void logout() {
         // TODO: Tell "friends" that i'm going offline
 
@@ -211,8 +210,20 @@ public class MainApp extends Application {
             System.out.println("Could not update peer address in public user profile");
             return;
         }
-
-        System.out.println("PeerAddress set to null in public profile");
+        
+        userProfile = null;
+        friendsList = null;
+        
+        // Change back to login screen
+        mainStage.setScene(loginScene);
+        
+        
+    }
+    
+    /*
+     Gracefully disconnect from network
+     */
+    public void shutdown() {
 
         // Shutdown Tom P2P stuff
         p2p.shutdown();
