@@ -24,7 +24,10 @@ import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.builder.ShutdownBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.rpc.ObjectDataReply;
 import net.tomp2p.storage.Data;
+import org.challengetask.FriendsListEntry;
+import org.challengetask.PublicUserProfile;
 
 /**
  *
@@ -93,8 +96,6 @@ public class P2POverlay {
             return new Pair<>(false,"Could not find any unused port");
         }
         
-        // Attach reply handler
-        peer.setObjectDataReply(new ObjectReplyHandler());
 
         try {
             FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("192.168.1.34")).setPorts(4001).start();
@@ -108,6 +109,10 @@ public class P2POverlay {
         }
         
     }
+    
+    public void setObjectDataReply(ObjectDataReply replyHandler) {
+        peer.setObjectDataReply(replyHandler);
+    } 
 
     public void shutdown() {
         System.out.println("Shutting down...");

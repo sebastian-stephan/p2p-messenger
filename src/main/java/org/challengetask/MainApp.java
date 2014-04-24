@@ -12,6 +12,8 @@ import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -23,6 +25,8 @@ import net.tomp2p.storage.Data;
 import org.challengetask.audio.OpusSoundTest;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
+import org.challengetask.network.FriendRequestMessage;
+import org.challengetask.network.ObjectReplyHandler;
 import org.challengetask.network.P2POverlay;
 import org.controlsfx.dialog.Dialogs;
 
@@ -106,6 +110,7 @@ public class MainApp extends Application {
             return new Pair<>(false, "Login data not valid, Wrong UserID/password?");
         }
 
+        // Get userprofile
         userProfile = (PrivateUserProfile) getResult;
 
         // Show main window
@@ -135,6 +140,9 @@ public class MainApp extends Application {
         // Set the FriendsList UI to show the friends in the profile
         friendsList = FXCollections.observableList(userProfile.getFriendsList());
         mainController.setFriendsList(friendsList);
+        
+        // Set reply handler
+        p2p.setObjectDataReply(new ObjectReplyHandler(this));
 
         return new Pair<>(true, "Login successful");
     }
@@ -155,21 +163,25 @@ public class MainApp extends Application {
     }
 
     public Pair<Boolean, String> addFriend(String userID, String messageText) {
+        // Check if user already exists in friends list
         if (isUserInFriendsList(userID)) {
             return new Pair<>(false, "User already in friendslist");
         }
         
+        // Check if user exists in the network
         if (!existsUser(userID)) {
             return new Pair<>(false, "User was not found");
         }
 
-        // TODO: FriendRequest: check if user is online try to send friend request 
-        // directlyif that fails, append the friend request message to the user's
-        // public profile
+        // Get public profile of friend we want to add
         PublicUserProfile friendProfile = (PublicUserProfile)p2p.get(userID);
-        // Try to send direct if possible
+        
+        // Create friend request message
+        FriendRequestMessage friendRequestMessage = new FriendRequestMessage(userProfile, messageText);
+        
+        // Try to send direct friend request if other user is online
         if (friendProfile.getPeerAddress() != null) {
-            if (p2p.send(friendProfile.getPeerAddress(), messageText) == false) {
+            if (p2p.send(friendProfile.getPeerAddress(), friendRequestMessage) == false) {
                 return new Pair<>(false, "Error sending friend request");
             }
         } else {
@@ -193,6 +205,10 @@ public class MainApp extends Application {
         } else {
             return new Pair<>(false, "Could not remove friend");
         }
+    }
+    
+    public void handleIncomingFriendRequest(FriendRequestMessage requestMessage) {
+        mainController.showIncomingFriendRequest(requestMessage);
     }
 
     /**
