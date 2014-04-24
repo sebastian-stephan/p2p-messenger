@@ -7,20 +7,11 @@
 package org.challengetask;
 
 import java.io.Serializable;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  *
