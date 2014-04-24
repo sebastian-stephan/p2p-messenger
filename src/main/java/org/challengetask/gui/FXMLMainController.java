@@ -1,10 +1,8 @@
 package org.challengetask.gui;
 
 import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
 import java.util.ResourceBundle;
-import javafx.collections.FXCollections;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -47,8 +45,13 @@ public class FXMLMainController implements Initializable {
     }
     
     public void showIncomingFriendRequest(FriendRequestMessage requestMessage) {
-        System.out.println("User \"" + requestMessage.getSenderUserID() + " wants " +
-                        " to add you: " + requestMessage.getMessageText());
+        String message = "User " + requestMessage.getSenderUserID() + " wants " +
+                        " to add you: \n" + requestMessage.getMessageText();
+        Runnable task = () -> { 
+            Notifications.create().title("Friend request")
+                    .text(message).showConfirm();
+        };
+        Platform.runLater(task);
     }
 
     @Override

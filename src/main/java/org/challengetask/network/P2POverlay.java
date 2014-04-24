@@ -98,7 +98,7 @@ public class P2POverlay {
         
 
         try {
-            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("127.0.0.1")).setPorts(4001).start();
+            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("192.168.1.61")).setPorts(4001).start();
             futureBootstrap.awaitUninterruptibly();
             if (futureBootstrap.isSuccess())
                 return new Pair<>(true, "Bootstrap successful");

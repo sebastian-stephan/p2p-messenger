@@ -22,10 +22,10 @@
       <top>
         <HBox id="topMenuHBox">
           <children>
-            <Button id="buttonAddFriend" mnemonicParsing="false" onAction="#handleAddFriendButtonClick" text="Add Friend" />
+            <Button fx:id="buttonAddFriend" mnemonicParsing="false" onAction="#handleAddFriendButtonClick" text="Add Friend" />
             <HBox alignment="TOP_RIGHT" prefHeight="-1.0" prefWidth="-1.0" HBox.hgrow="ALWAYS">
               <children>
-                <Button id="buttonLogout" mnemonicParsing="false" onAction="#handleLogoutButtonClick" text="Logout" />
+                <Button fx:id="buttonLogout" mnemonicParsing="false" onAction="#handleLogoutButtonClick" text="Logout" />
               </children>
             </HBox>
           </children>
