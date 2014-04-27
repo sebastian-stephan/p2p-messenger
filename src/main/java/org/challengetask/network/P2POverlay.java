@@ -6,13 +6,9 @@
 package org.challengetask.network;
 
 import java.io.IOException;
-import java.net.BindException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.util.Pair;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.FutureBootstrap;
@@ -21,13 +17,10 @@ import net.tomp2p.futures.FutureGet;
 import net.tomp2p.futures.FuturePut;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
-import net.tomp2p.p2p.builder.ShutdownBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import net.tomp2p.storage.Data;
-import org.challengetask.FriendsListEntry;
-import org.challengetask.PublicUserProfile;
 
 /**
  *

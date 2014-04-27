@@ -2,12 +2,10 @@ package org.challengetask.gui;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Point2D;
@@ -25,18 +23,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
 import javafx.util.Callback;
 import javafx.util.Pair;
 import org.challengetask.FriendsListEntry;
 import org.challengetask.MainApp;
-import org.challengetask.network.FriendRequestMessage;
-import org.controlsfx.control.GridView;
+import org.challengetask.messages.FriendRequestMessage;
 import org.controlsfx.control.Notifications;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.dialog.Dialogs;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
 public class FXMLMainController implements Initializable {

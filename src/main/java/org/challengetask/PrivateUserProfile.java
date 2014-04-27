@@ -11,7 +11,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import org.challengetask.network.FriendRequestMessage;
+import org.challengetask.messages.FriendRequestMessage;
 
 /**
  *

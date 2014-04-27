@@ -7,15 +7,10 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PopupControl;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import javafx.util.Pair;
 import org.challengetask.MainApp;
 import org.controlsfx.control.Notifications;
-import org.controlsfx.control.PopOver;
 
 public class FXMLLoginController implements Initializable {
 

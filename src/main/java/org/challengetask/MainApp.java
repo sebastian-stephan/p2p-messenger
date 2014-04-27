@@ -1,22 +1,10 @@
 package org.challengetask;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,11 +13,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.util.Pair;
-import net.tomp2p.storage.Data;
 import org.challengetask.audio.OpusSoundTest;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
-import org.challengetask.network.FriendRequestMessage;
+import org.challengetask.messages.FriendRequestMessage;
 import org.challengetask.network.ObjectReplyHandler;
 import org.challengetask.network.P2POverlay;
 import org.controlsfx.dialog.Dialogs;
@@ -188,7 +175,7 @@ public class MainApp extends Application {
         PublicUserProfile friendProfile = (PublicUserProfile) p2p.get(userID);
 
         // Create friend request message
-        FriendRequestMessage friendRequestMessage = new FriendRequestMessage(userProfile, messageText);
+        FriendRequestMessage friendRequestMessage = new FriendRequestMessage(userProfile.getUserID(), messageText);
 
         // Try to send direct friend request if other user is online
         if (friendProfile.getPeerAddress() != null) {

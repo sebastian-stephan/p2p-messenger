@@ -6,11 +6,11 @@
 
 package org.challengetask.network;
 
+import org.challengetask.messages.FriendRequestMessage;
 import javafx.application.Platform;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.challengetask.MainApp;
-import org.controlsfx.control.Notifications;
 
 /**
  *

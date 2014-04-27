@@ -4,28 +4,22 @@
  * and open the template in the editor.
  */
 
-package org.challengetask.network;
+package org.challengetask.messages;
 
 import java.io.Serializable;
-import net.tomp2p.peers.PeerAddress;
 import org.challengetask.PrivateUserProfile;
-import org.challengetask.PublicUserProfile;
 
 /**
  *
  * @author Sebastian
  */
-public class FriendRequestMessage implements Serializable {
+public abstract class Message implements Serializable {
     private final String senderUserID;
-    private final String messageText;
+    protected final String messageText;
 
 
-    public FriendRequestMessage (PrivateUserProfile _senderProfile, String _messageText) {
-        senderUserID = _senderProfile.getUserID();
-        messageText = _messageText;
-    }
     
-    public FriendRequestMessage (String _senderUserID, String _messageText) {
+    public Message (String _senderUserID, String _messageText) {
         senderUserID = _senderUserID;
         messageText = _messageText;
     }
