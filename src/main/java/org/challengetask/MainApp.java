@@ -6,6 +6,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -13,10 +17,14 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import net.tomp2p.futures.BaseFutureAdapter;
+import net.tomp2p.futures.FutureGet;
+import net.tomp2p.peers.PeerAddress;
 import org.challengetask.audio.OpusSoundTest;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
 import org.challengetask.messages.FriendRequestMessage;
+import org.challengetask.messages.OnlineStatusMessage;
 import org.challengetask.network.ObjectReplyHandler;
 import org.challengetask.network.P2POverlay;
 import org.controlsfx.dialog.Dialogs;
@@ -115,6 +123,12 @@ public class MainApp extends Application {
             return new Pair<>(false, "Could not update peer address in public user profile");
         }
 
+        // Reset all friends list entries 
+        for (FriendsListEntry e : userProfile.getFriendsList()) {
+            e.setOnline(false);
+            e.setPeerAddress(null);
+        }
+
         // Set the observable friends list from the user profile
         friendsList = FXCollections.observableList(userProfile.getFriendsList());
 
@@ -140,11 +154,14 @@ public class MainApp extends Application {
             Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        // Send out online status to all friends
+        pingAllFriends(true);
+
         return new Pair<>(true, "Login successful");
     }
 
-    public List<FriendsListEntry> getFriendsList() {
-        return userProfile.getFriendsList();
+    public ObservableList<FriendsListEntry> getFriendsList() {
+        return friendsList;
     }
 
     public void call(String userID) {
@@ -155,14 +172,20 @@ public class MainApp extends Application {
         return (p2p.get(userID) != null);
     }
 
-    public boolean addUser(String userID) {
+    public boolean addFriend(String userID) {
+        // Add to list
         friendsList.add(new FriendsListEntry(userID));
+
+        // Send ping
+        pingUser(userID, true, true);
+
+        // Save profile
         return savePrivateUserProfile();
     }
 
     public Pair<Boolean, String> sendFriendRequest(String userID, String messageText) {
         // Check if user already exists in friends list
-        if (isUserInFriendsList(userID)) {
+        if (getFriendsListEntry(userID) != null) {
             return new Pair<>(false, "User already in friendslist");
         }
 
@@ -186,9 +209,9 @@ public class MainApp extends Application {
             return new Pair<>(false, "Friend doesn't seem to be online");
         }
 
-        // Save profile in the DHT
-        if (addUser(userID) == false) {
-            return new Pair<>(false, "Error, adding the friend sto the User Profile");
+        // Addd as friend
+        if (addFriend(userID) == false) {
+            return new Pair<>(false, "Error, adding the friend");
         }
 
         return new Pair<>(true, "Friend request to " + userID + " was sent");
@@ -196,7 +219,7 @@ public class MainApp extends Application {
 
     public void acceptFriendRequest(FriendRequestMessage message) {
         // Add user
-        addUser(message.getSenderUserID());
+        addFriend(message.getSenderUserID());
 
         // Remove friend request
         friendRequestsList.remove(message);
@@ -246,25 +269,15 @@ public class MainApp extends Application {
         return (userProfile != null) ? userProfile.getUserID() : "error";
     }
 
-    /**
-     * The main() method is ignored in correctly deployed JavaFX application.
-     * main() serves only as fallback in case the application can not be
-     * launched through deployment artifacts, e.g., in IDEs with limited FX
-     * support. NetBeans ignores main().
-     *
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        launch(args);
-    }
-
     @Override
     public void stop() {
+        logout();
         shutdown();
     }
 
     public void logout() {
-        // TODO: Tell "friends" that i'm going offline
+        // Tell "friends" that i'm going offline
+        pingAllFriends(false);
 
         // Set PeerAddress in public Profile to null
         Object objectPublicUserProfile = p2p.get(userProfile.getUserID());
@@ -296,19 +309,69 @@ public class MainApp extends Application {
         p2p.shutdown();
     }
 
+    public FriendsListEntry getFriendsListEntry(String userID) {
+        for (FriendsListEntry e : friendsList) {
+            if (e.getUserID().equals(userID)) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    public void pingUser(PeerAddress pa, boolean onlineStatus, boolean replyPongExpected) {
+        // Send ping
+        OnlineStatusMessage msg = new OnlineStatusMessage(userProfile.getUserID(), onlineStatus, replyPongExpected);
+        p2p.sendNonBlocking(pa, msg);
+    }
+
+    private void pingUser(String userID, boolean onlineStatus, boolean replyPongExpected) {
+        p2p.getNonBLocking(userID, new BaseFutureAdapter<FutureGet>() {
+            @Override
+            public void operationComplete(FutureGet f) throws Exception {
+                FriendsListEntry friendsListEntry = getFriendsListEntry(userID);
+                assert(friendsListEntry != null);
+                if (f.isSuccess()) {
+                    PublicUserProfile publicUserProfile = (PublicUserProfile) f.getData().object();
+                    // Set peer address in friendslist
+                    PeerAddress peerAddress = publicUserProfile.getPeerAddress();
+                    friendsListEntry.setPeerAddress(peerAddress);
+
+                    // Send ping
+                    pingUser(publicUserProfile.getPeerAddress(), onlineStatus, replyPongExpected);
+                } else {
+                    // Can't find other peer, maybe he deleted his account? -> show offline
+                    System.out.println("User " + userID + " doesnt seem to exist anymore");
+                    friendsListEntry.setOnline(false);
+                    friendsListEntry.setPeerAddress(null);
+                }
+            }
+        });
+
+    }
+
+    private void pingAllFriends(boolean onlineStatus) {
+
+        for (FriendsListEntry entry : friendsList) {
+            String userID = entry.getUserID();
+
+            // Assuming online friends have the correct peer address
+            if (entry.isOnline()) {
+                OnlineStatusMessage ping = new OnlineStatusMessage(userProfile.getUserID(), 
+                        onlineStatus, onlineStatus);
+                p2p.sendNonBlocking(entry.getPeerAddress(), ping);
+            } // If friend seems offline, only send out ping if we want to broadcast online=true
+            else if (entry.isOnline() == false && onlineStatus == true) {
+                // Get users public profile and read it's peer address
+                pingUser(userID, onlineStatus, onlineStatus);
+
+            }
+        }
+    }
+
     private boolean savePrivateUserProfile() {
         // TODO: encrypt before saving
 
         return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
-    }
-
-    private boolean isUserInFriendsList(String userID) {
-        for (FriendsListEntry e : friendsList) {
-            if (e.getUserID().equals(userID)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

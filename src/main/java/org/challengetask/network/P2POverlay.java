@@ -11,6 +11,7 @@ import java.net.UnknownHostException;
 import java.util.Random;
 import javafx.util.Pair;
 import net.tomp2p.futures.BaseFuture;
+import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDirect;
 import net.tomp2p.futures.FutureGet;
@@ -68,6 +69,16 @@ public class P2POverlay {
                 .setObject(o).start().awaitUninterruptibly();
         
         return futureDirect.isSuccess();
+    }
+    
+    public void sendNonBlocking(PeerAddress recipient, Object o) {
+        FutureDirect frutureDirect = peer.sendDirect(recipient)
+                .setObject(o).start();
+    }
+    
+    public void getNonBLocking(String key, BaseFutureAdapter<FutureGet> baseFutureAdapter) {
+        FutureGet futureGet = peer.get(Number160.createHash(key)).start();
+        futureGet.addListener(baseFutureAdapter);
     }
     
     public Pair<Boolean,String> bootstrap() {

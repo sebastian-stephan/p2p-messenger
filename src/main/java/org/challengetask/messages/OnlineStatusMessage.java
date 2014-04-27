@@ -14,10 +14,12 @@ import org.challengetask.PrivateUserProfile;
  */
 public class OnlineStatusMessage extends Message {
     final private boolean onlineStatus;
+    final private boolean replyPongExpected;
 
-    public OnlineStatusMessage (String _senderUserID, boolean _onlineStatus) {
+    public OnlineStatusMessage (String _senderUserID, boolean _onlineStatus, boolean _pongRequested) {
         super(_senderUserID, "");
         onlineStatus = _onlineStatus;
+        replyPongExpected = _pongRequested;
     }
 
     /**
@@ -25,5 +27,12 @@ public class OnlineStatusMessage extends Message {
      */
     public boolean isOnline() {
         return onlineStatus;
+    }
+
+    /**
+     * @return the replyPongExpected
+     */
+    public boolean isReplyPongExpected() {
+        return replyPongExpected;
     }
 }
