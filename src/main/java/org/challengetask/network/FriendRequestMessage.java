@@ -25,6 +25,11 @@ public class FriendRequestMessage implements Serializable {
         messageText = _messageText;
     }
     
+    public FriendRequestMessage (String _senderUserID, String _messageText) {
+        senderUserID = _senderUserID;
+        messageText = _messageText;
+    }
+    
     /**
      * @return the senderUserID
      */

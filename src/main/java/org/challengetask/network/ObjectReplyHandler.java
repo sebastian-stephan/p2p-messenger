@@ -6,9 +6,11 @@
 
 package org.challengetask.network;
 
+import javafx.application.Platform;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.challengetask.MainApp;
+import org.controlsfx.control.Notifications;
 
 /**
  *
@@ -24,7 +26,10 @@ public class ObjectReplyHandler implements ObjectDataReply {
     @Override
     public Object reply(PeerAddress pa, Object o) throws Exception {
         if (o instanceof FriendRequestMessage) {
-            mainApp.handleIncomingFriendRequest((FriendRequestMessage)o);
+            Runnable task = () -> {
+                mainApp.handleIncomingFriendRequest((FriendRequestMessage)o);
+            };
+            Platform.runLater(task);
         }
         return null;
     }

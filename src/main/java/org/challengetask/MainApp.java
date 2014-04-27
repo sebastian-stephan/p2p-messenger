@@ -1,11 +1,15 @@
 package org.challengetask;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
+import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
@@ -36,12 +40,13 @@ public class MainApp extends Application {
     private Scene loginScene;
     private FXMLLoginController loginController;
     private FXMLMainController mainController;
-    
+
     private P2POverlay p2p;
     private OpusSoundTest o;
 
     private PrivateUserProfile userProfile;
     private ObservableList<FriendsListEntry> friendsList;
+    private ObservableList<FriendRequestMessage> friendRequestsList;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -76,8 +81,7 @@ public class MainApp extends Application {
 
     public Pair<Boolean, String> createAccount(String userID, String password) {
         // Check if the user is already in the friendslist
-        
-        
+
         // Check if account exists
         if (p2p.get(userID) != null) {
             return new Pair<>(false, "Could not create user account. UserID already taken.");
@@ -123,15 +127,16 @@ public class MainApp extends Application {
         if (p2p.put(userID, publicUserProfile) == false) {
             return new Pair<>(false, "Could not update peer address in public user profile");
         }
-        
-        // Set the FriendsList UI to show the friends in the profile
+
+        // Set the observable friends list from the user profile
         friendsList = FXCollections.observableList(userProfile.getFriendsList());
-        
-                
+
+        // Set the observable friend requests list from the user profile
+        friendRequestsList = FXCollections.observableList(userProfile.getFriendRequestsList());
+
         // Set reply handler
         p2p.setObjectDataReply(new ObjectReplyHandler(this));
-        
-        
+
         // Show main window
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
@@ -140,6 +145,7 @@ public class MainApp extends Application {
             mainController = fxmlLoader.getController();
             mainController.setApplication(this);
             mainController.setFriendsList(friendsList);
+            mainController.setFriendRequestList(getFriendRequestsList());
             mainController.setTitleText(userID);
             Scene mainScene = new Scene(mainRoot);
             mainStage.setScene(mainScene);
@@ -154,7 +160,6 @@ public class MainApp extends Application {
         return userProfile.getFriendsList();
     }
 
-
     public void call(String userID) {
         // TODO
     }
@@ -163,23 +168,28 @@ public class MainApp extends Application {
         return (p2p.get(userID) != null);
     }
 
-    public Pair<Boolean, String> addFriend(String userID, String messageText) {
+    public boolean addUser(String userID) {
+        friendsList.add(new FriendsListEntry(userID));
+        return savePrivateUserProfile();
+    }
+
+    public Pair<Boolean, String> sendFriendRequest(String userID, String messageText) {
         // Check if user already exists in friends list
         if (isUserInFriendsList(userID)) {
             return new Pair<>(false, "User already in friendslist");
         }
-        
+
         // Check if user exists in the network
         if (!existsUser(userID)) {
             return new Pair<>(false, "User was not found");
         }
 
         // Get public profile of friend we want to add
-        PublicUserProfile friendProfile = (PublicUserProfile)p2p.get(userID);
-        
+        PublicUserProfile friendProfile = (PublicUserProfile) p2p.get(userID);
+
         // Create friend request message
         FriendRequestMessage friendRequestMessage = new FriendRequestMessage(userProfile, messageText);
-        
+
         // Try to send direct friend request if other user is online
         if (friendProfile.getPeerAddress() != null) {
             if (p2p.send(friendProfile.getPeerAddress(), friendRequestMessage) == false) {
@@ -188,16 +198,32 @@ public class MainApp extends Application {
         } else {
             return new Pair<>(false, "Friend doesn't seem to be online");
         }
-        
-        // Add to friendsList
-        friendsList.add(new FriendsListEntry(userID));
 
         // Save profile in the DHT
-        if (savePrivateUserProfile() == false) {
-            return new Pair<>(false, "Error, saving the private User Profile");
+        if (addUser(userID) == false) {
+            return new Pair<>(false, "Error, adding the friend sto the User Profile");
         }
 
         return new Pair<>(true, "Friend request to " + userID + " was sent");
+    }
+
+    public void acceptFriendRequest(FriendRequestMessage message) {
+        // Add user
+        addUser(message.getSenderUserID());
+
+        // Remove friend request
+        friendRequestsList.remove(message);
+
+        // Save User Profile
+        savePrivateUserProfile();
+    }
+
+    public void declineFriendRequest(FriendRequestMessage message) {
+        // Remove friend request
+        friendRequestsList.remove(message);
+
+        // Save User Profile
+        savePrivateUserProfile();
     }
 
     public Pair<Boolean, String> removeFriend(FriendsListEntry friendEntry) {
@@ -207,13 +233,30 @@ public class MainApp extends Application {
             return new Pair<>(false, "Could not remove friend");
         }
     }
-    
+
     public void handleIncomingFriendRequest(FriendRequestMessage requestMessage) {
+        // Ignore requests from users already in the list
+        if (userProfile.isFriendsWith(requestMessage.getSenderUserID())) {
+            return;
+        }
+
+        // Ignore multiple requests
+        if (userProfile.hasFriendRequestFromUser(requestMessage.getSenderUserID())) {
+            return;
+        }
+
+        // Add friend request
+        getFriendRequestsList().add(requestMessage);
+
+        // Save the change
+        savePrivateUserProfile();
+
+        // Show visual message
         mainController.showIncomingFriendRequest(requestMessage);
     }
-    
+
     public String getUserID() {
-        return (userProfile != null)? userProfile.getUserID() : "error";
+        return (userProfile != null) ? userProfile.getUserID() : "error";
     }
 
     /**
@@ -248,16 +291,15 @@ public class MainApp extends Application {
             System.out.println("Could not update peer address in public user profile");
             return;
         }
-        
+
         userProfile = null;
         friendsList = null;
-        
+
         // Change back to login screen
         mainStage.setScene(loginScene);
-        
-        
+
     }
-    
+
     /*
      Gracefully disconnect from network
      */
@@ -280,5 +322,12 @@ public class MainApp extends Application {
             }
         }
         return false;
+    }
+
+    /**
+     * @return the friendRequestsList
+     */
+    public ObservableList<FriendRequestMessage> getFriendRequestsList() {
+        return friendRequestsList;
     }
 }

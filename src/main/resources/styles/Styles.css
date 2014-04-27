@@ -5,7 +5,7 @@
 
 .label {
     -fx-text-fill: #4B5B6E;
-    -fx-font-size: 10pt;
+    -fx-font-size: 9pt;
 }
 
 #labelUserIDTitel {
@@ -18,7 +18,7 @@
 }
 
 .logo {
-    -fx-font: 55px Tahoma;
+    -fx-font-size: 55pt;
     -fx-text-fill: #0077DB;
 }
 
@@ -29,22 +29,29 @@
         linear-gradient(#ffea6a, #efaa22),
         linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),
         linear-gradient(from 0% 0% to 15% 50%, rgba(255,255,255,0.9), rgba(255,255,255,0));
-    -fx-background-radius: 10;
+    -fx-background-radius: 9;
     -fx-background-insets: 0,1,2,3,0;
     -fx-text-fill: #4B5B6E;
     -fx-font-weight: bold;
-    -fx-font-size: 12px;
-    -fx-padding: 7 15 7 15;
+    -fx-font-size: 10pt;
+    -fx-padding: 6 13 6 13;
 }
 
 .callButton {
     -fx-background-color: #00cc33;
     -fx-background-radius: 8;
     -fx-text-fill: white;
-    -fx-font-size: 13px;
+    -fx-font-size: 10pt;
     -fx-padding: 4 7 4 7;
 }
 
+.buttonFriendRequest {
+    -fx-background-color: #f8c202;
+    -fx-background-radius: 8;
+    -fx-text-fill: #4B5B6E;
+    -fx-font-size: 10pt;
+    -fx-padding: 4 7 4 7;
+}
 
 .button:hover {
     -fx-background-color: 
