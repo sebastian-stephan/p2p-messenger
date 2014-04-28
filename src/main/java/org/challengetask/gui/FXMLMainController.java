@@ -4,6 +4,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -55,11 +56,18 @@ public class FXMLMainController implements Initializable {
         mainApp = _mainApp;
     }
 
-    public void setFriendsList(ObservableList observableFriendsList) {
-        friendsList.setItems(observableFriendsList);
+    public void setFriendsListSource(ObservableList list) {
+        friendsList.setItems(list);
     }
     
-    public void setFriendRequestList(ObservableList observableFriendRequestList) {
+    public void updateFriendsListView() {
+        ObservableList list = friendsList.getItems();
+        list.sort(new FriendsListComparator());
+        friendsList.setItems(null);
+        friendsList.setItems(list);
+    }
+    
+    public void setFriendRequestListSource(ObservableList observableFriendRequestList) {
         // Bind friend requests list to data
         friendRequestList.setItems(observableFriendRequestList);
         
@@ -91,7 +99,7 @@ public class FXMLMainController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Set up custom friendslist
+        // Set up custom friendslist view
         friendsList.setCellFactory(new Callback<ListView<FriendsListEntry>, ListCell<FriendsListEntry>>() {
 
             @Override
@@ -101,11 +109,11 @@ public class FXMLMainController implements Initializable {
 
         });
         
-        // Set up custom friend request list
+        // Set up custom friend request list vew
         friendRequestList = new ListView();
         friendRequestList.setPrefWidth(350);
         friendRequestList.setCellFactory(new Callback<ListView<FriendRequestMessage>, ListCell<FriendRequestMessage>>() {
-
+        
             @Override
             public ListCell<FriendRequestMessage> call(ListView<FriendRequestMessage> param) {
                 FriendRequestListCell cell = new FriendRequestListCell();
@@ -121,11 +129,12 @@ public class FXMLMainController implements Initializable {
         buttonFriendRequests.setGraphic(GlyphFontRegistry.glyph("FontAwesome|USER"));
         buttonFriendRequests.setText("0");
 
-        // Popover
+        // Set up popover for friends request
         friendRequestsPopover = new PopOver(friendRequestList);
         friendRequestsPopover.setArrowLocation(PopOver.ArrowLocation.TOP_LEFT);
         friendRequestsPopover.setDetachable(false);
         friendRequestsPopover.setAutoHide(true);
+        
         
     }
     
@@ -139,7 +148,7 @@ public class FXMLMainController implements Initializable {
                 VBox vBox = new VBox();
                 vBox.setSpacing(10);
                 VBox.setVgrow(vBox, Priority.ALWAYS);
-                
+
                 HBox leftHbox = new HBox();
                 leftHbox.setSpacing(10);
                 leftHbox.setAlignment(Pos.TOP_LEFT);
@@ -214,7 +223,7 @@ public class FXMLMainController implements Initializable {
 
                         @Override
                         public void handle(ActionEvent event) {
-                            mainApp.call(_item.getUserID());
+                            //mainApp.call(_item.getUserID());
                             Notifications.create().title("Call")
                                     .text("Calling " + _item.getUserID())
                                     .show();
@@ -283,6 +292,11 @@ public class FXMLMainController implements Initializable {
                 Dialogs.create()
                         .title("Add new friend")
                         .message("Could not find the user " + userID)
+                        .showError();
+            } else if (mainApp.getUserID().equals(userID)) {
+                Dialogs.create()
+                        .title("Add new friend")
+                        .message("You cannot add yourself")
                         .showError();
             } else {
                 // Ask for a message

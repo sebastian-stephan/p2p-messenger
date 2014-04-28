@@ -6,6 +6,7 @@
 package org.challengetask.network;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.challengetask.FriendsListEntry;
@@ -35,25 +36,30 @@ public class ObjectReplyHandler implements ObjectDataReply {
             Platform.runLater(task);
         } else if (o instanceof OnlineStatusMessage) {
             Runnable task = () -> {
-                OnlineStatusMessage msg = (OnlineStatusMessage) o;
-                FriendsListEntry e = mainApp.getFriendsListEntry(msg.getSenderUserID());
-                // If friend is in friendslist
-                if (e != null) {
-                    // Set online
-                    e.setOnline(msg.isOnline());
-                    e.setPeerAddress(pa);
-                    mainApp.getFriendsList().remove(e);
-                    mainApp.getFriendsList().add(e);
+                synchronized (mainApp) {
+                    OnlineStatusMessage msg = (OnlineStatusMessage) o;
+                    FriendsListEntry e = mainApp.getFriendsListEntry(msg.getSenderUserID());
+                    
+                    
+                    // If friend is in friendslist
+                    if (e != null) {
+                        // Set online
+                        e.setOnline(msg.isOnline());
+                        e.setPeerAddress(pa);
+                        ObservableList<FriendsListEntry> list = mainApp.getFriendsList();
+                        //mainApp.getFriendsList().remove(e);
+                        //mainApp.getFriendsList().add(e);
+                        mainApp.updateFriendsListView();
+                        // Show notification
+                        if (msg.isOnline()) {
+                            Notifications.create().text("User " + msg.getSenderUserID() + " just came online")
+                                    .showInformation();
+                        }
 
-                    // Show notification
-                    if (msg.isOnline()) {
-                        Notifications.create().text("User " + msg.getSenderUserID() + " just came online")
-                                .showInformation();
-                    }
-
-                    // Send pong back if wanted
-                    if (msg.isReplyPongExpected()) {
-                        mainApp.pingUser(pa, true, false);
+                        // Send pong back if wanted
+                        if (msg.isReplyPongExpected()) {
+                            mainApp.pingUser(pa, true, false);
+                        }
                     }
                 }
             };

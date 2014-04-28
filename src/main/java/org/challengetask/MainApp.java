@@ -1,6 +1,7 @@
 package org.challengetask;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +13,7 @@ import static javafx.application.Application.launch;
 import static javafx.application.Application.launch;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -23,6 +25,7 @@ import net.tomp2p.peers.PeerAddress;
 import org.challengetask.audio.OpusSoundTest;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
+import org.challengetask.gui.FriendsListComparator;
 import org.challengetask.messages.FriendRequestMessage;
 import org.challengetask.messages.OnlineStatusMessage;
 import org.challengetask.network.ObjectReplyHandler;
@@ -130,13 +133,12 @@ public class MainApp extends Application {
         }
 
         // Set the observable friends list from the user profile
-        friendsList = FXCollections.observableList(userProfile.getFriendsList());
-
+        // Has to be thread safe
+        friendsList = FXCollections.synchronizedObservableList(FXCollections.observableList(userProfile.getFriendsList()));
+        friendsList.sort(new FriendsListComparator());
+        
         // Set the observable friend requests list from the user profile
         friendRequestsList = FXCollections.observableList(userProfile.getFriendRequestsList());
-
-        // Set reply handler
-        p2p.setObjectDataReply(new ObjectReplyHandler(this));
 
         // Show main window
         try {
@@ -145,8 +147,8 @@ public class MainApp extends Application {
             Parent mainRoot = fxmlLoader.load();
             mainController = fxmlLoader.getController();
             mainController.setApplication(this);
-            mainController.setFriendsList(friendsList);
-            mainController.setFriendRequestList(getFriendRequestsList());
+            mainController.setFriendsListSource(friendsList);
+            mainController.setFriendRequestListSource(friendRequestsList);
             mainController.setTitleText(userID);
             Scene mainScene = new Scene(mainRoot);
             mainStage.setScene(mainScene);
@@ -154,18 +156,13 @@ public class MainApp extends Application {
             Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        // Set reply handler
+        p2p.setObjectDataReply(new ObjectReplyHandler(this));
+
         // Send out online status to all friends
         pingAllFriends(true);
 
         return new Pair<>(true, "Login successful");
-    }
-
-    public ObservableList<FriendsListEntry> getFriendsList() {
-        return friendsList;
-    }
-
-    public void call(String userID) {
-        // TODO
     }
 
     public boolean existsUser(String userID) {
@@ -175,7 +172,9 @@ public class MainApp extends Application {
     public boolean addFriend(String userID) {
         // Add to list
         friendsList.add(new FriendsListEntry(userID));
-
+        friendsList.sort(new FriendsListComparator());
+        mainController.updateFriendsListView();
+        
         // Send ping
         pingUser(userID, true, true);
 
@@ -256,7 +255,7 @@ public class MainApp extends Application {
         }
 
         // Add friend request
-        getFriendRequestsList().add(requestMessage);
+        friendRequestsList.add(requestMessage);
 
         // Save the change
         savePrivateUserProfile();
@@ -267,6 +266,23 @@ public class MainApp extends Application {
 
     public String getUserID() {
         return (userProfile != null) ? userProfile.getUserID() : "error";
+    }
+
+    public ObservableList<FriendsListEntry> getFriendsList() {
+        return friendsList;
+    }
+
+    public FriendsListEntry getFriendsListEntry(String userID) {
+        for (FriendsListEntry e : friendsList) {
+            if (e.getUserID().equals(userID)) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    public void updateFriendsListView() {
+        mainController.updateFriendsListView();
     }
 
     @Override
@@ -300,22 +316,10 @@ public class MainApp extends Application {
 
     }
 
-    /*
-     Gracefully disconnect from network
-     */
     public void shutdown() {
 
         // Shutdown Tom P2P stuff
         p2p.shutdown();
-    }
-
-    public FriendsListEntry getFriendsListEntry(String userID) {
-        for (FriendsListEntry e : friendsList) {
-            if (e.getUserID().equals(userID)) {
-                return e;
-            }
-        }
-        return null;
     }
 
     public void pingUser(PeerAddress pa, boolean onlineStatus, boolean replyPongExpected) {
@@ -329,7 +333,7 @@ public class MainApp extends Application {
             @Override
             public void operationComplete(FutureGet f) throws Exception {
                 FriendsListEntry friendsListEntry = getFriendsListEntry(userID);
-                assert(friendsListEntry != null);
+                assert (friendsListEntry != null);
                 if (f.isSuccess()) {
                     PublicUserProfile publicUserProfile = (PublicUserProfile) f.getData().object();
                     // Set peer address in friendslist
@@ -337,7 +341,9 @@ public class MainApp extends Application {
                     friendsListEntry.setPeerAddress(peerAddress);
 
                     // Send ping
-                    pingUser(publicUserProfile.getPeerAddress(), onlineStatus, replyPongExpected);
+                    if (peerAddress != null) {
+                        pingUser(publicUserProfile.getPeerAddress(), onlineStatus, replyPongExpected);
+                    }
                 } else {
                     // Can't find other peer, maybe he deleted his account? -> show offline
                     System.out.println("User " + userID + " doesnt seem to exist anymore");
@@ -356,7 +362,7 @@ public class MainApp extends Application {
 
             // Assuming online friends have the correct peer address
             if (entry.isOnline()) {
-                OnlineStatusMessage ping = new OnlineStatusMessage(userProfile.getUserID(), 
+                OnlineStatusMessage ping = new OnlineStatusMessage(userProfile.getUserID(),
                         onlineStatus, onlineStatus);
                 p2p.sendNonBlocking(entry.getPeerAddress(), ping);
             } // If friend seems offline, only send out ping if we want to broadcast online=true
@@ -374,10 +380,4 @@ public class MainApp extends Application {
         return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
     }
 
-    /**
-     * @return the friendRequestsList
-     */
-    public ObservableList<FriendRequestMessage> getFriendRequestsList() {
-        return friendRequestsList;
-    }
 }

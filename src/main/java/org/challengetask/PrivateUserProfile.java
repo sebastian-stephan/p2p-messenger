@@ -21,8 +21,8 @@ public class PrivateUserProfile implements Serializable {
 
     private final String userID;
     private final String password;
-    private List<FriendsListEntry> friendsList;
-    private List<FriendRequestMessage> friendRequestsList;
+    private ArrayList<FriendsListEntry> friendsList;
+    private ArrayList<FriendRequestMessage> friendRequestsList;
 
     private KeyPair keyPair;
 
@@ -39,19 +39,11 @@ public class PrivateUserProfile implements Serializable {
             System.out.println("Could not generate KeyPair");
         }
 
-        // Create new friendsList with some fake data
+        // Create new emtpy friendsList
         friendsList = new ArrayList<FriendsListEntry>();
-        //FriendsListEntry fakeFriend1 = new FriendsListEntry("Online Friend");
-        //FriendsListEntry fakeFriend2 = new FriendsListEntry("Offline Friend 1");
-        //FriendsListEntry fakeFriend3 = new FriendsListEntry("Offline Friend 2");
-        //fakeFriend1.setOnline(true);
-        //friendsList.add(fakeFriend1);
-        //friendsList.add(fakeFriend2);
-        //friendsList.add(fakeFriend3);
 
-        // A fake friend request
+        // Create new empty friendsrequest list
         friendRequestsList = new ArrayList<FriendRequestMessage>();
-        //friendRequestsList.add(new FriendRequestMessage("B. Obama", "Hello, this is the president. Please add me"));
     }
 
     public boolean isFriendsWith(String s) {
