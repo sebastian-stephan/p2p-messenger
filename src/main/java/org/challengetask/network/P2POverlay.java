@@ -119,23 +119,8 @@ public class P2POverlay {
     } 
 
     public void shutdown() {
-        System.out.println("Shutting down...");
-
         BaseFuture shutdownBuilder = peer.shutdown();
-
-        System.out.println("Shutdown process started");
-
         shutdownBuilder.awaitUninterruptibly();
-
-        if (shutdownBuilder.isCompleted()) {
-            System.out.println("Shutdown is complete");
-        }
-        if (shutdownBuilder.isSuccess()) {
-            System.out.println("Shutdown is Success");
-        }
-        if (shutdownBuilder.isFailed()) {
-            System.out.println("Shutdown is Failed");
-        }
         peer = null;
     }
 }

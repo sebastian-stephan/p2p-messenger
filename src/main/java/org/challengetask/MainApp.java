@@ -106,55 +106,71 @@ public class MainApp extends Application {
     }
 
     public Pair<Boolean, String> login(String userID, String password) {
+        // Get userprofile if password and username are correct
         Object getResult = p2p.get(userID + password);
-
         if (getResult == null) {
             return new Pair<>(false, "Login data not valid, Wrong UserID/password?");
         }
-
-        // Get userprofile
         userProfile = (PrivateUserProfile) getResult;
 
-        // Update public profile with current IP Address
+        // Load FXML
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(getClass().getResource("/fxml/MainScene.fxml"));
+        Parent mainRoot;
+        try {
+            mainRoot = fxmlLoader.load();
+        } catch (IOException ex) {
+            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+            return new Pair<>(false, "Error loading the main window");
+        }
+
+        // Get controller of main window
+        mainController = fxmlLoader.getController();
+        mainController.setApplication(this);
+
+        // Get public user profile
         Object objectPublicUserProfile = p2p.get(userID);
         if (objectPublicUserProfile == null) {
             return new Pair<>(false, "Could not retrieve public userprofile");
         }
         PublicUserProfile publicUserProfile = (PublicUserProfile) objectPublicUserProfile;
-        publicUserProfile.setPeerAddress(p2p.getPeerAddress());
-        if (p2p.put(userID, publicUserProfile) == false) {
-            return new Pair<>(false, "Could not update peer address in public user profile");
-        }
 
-        // Reset all friends list entries 
+        // **** FRIENDS LIST ****
+        // Reset all friends list entries to offline and unkown peer address
         for (FriendsListEntry e : userProfile.getFriendsList()) {
             e.setOnline(false);
             e.setPeerAddress(null);
         }
-
         // Set the observable friends list from the user profile
-        // Has to be thread safe
         friendsList = FXCollections.synchronizedObservableList(FXCollections.observableList(userProfile.getFriendsList()));
         friendsList.sort(new FriendsListComparator());
-        
-        // Set the observable friend requests list from the user profile
-        friendRequestsList = FXCollections.observableList(userProfile.getFriendRequestsList());
+        mainController.setFriendsListSource(friendsList);
 
-        // Show main window
-        try {
-            FXMLLoader fxmlLoader = new FXMLLoader();
-            fxmlLoader.setLocation(getClass().getResource("/fxml/MainScene.fxml"));
-            Parent mainRoot = fxmlLoader.load();
-            mainController = fxmlLoader.getController();
-            mainController.setApplication(this);
-            mainController.setFriendsListSource(friendsList);
-            mainController.setFriendRequestListSource(friendRequestsList);
-            mainController.setTitleText(userID);
-            Scene mainScene = new Scene(mainRoot);
-            mainStage.setScene(mainScene);
-        } catch (IOException ex) {
-            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+        // **** FRIEND REQUESTS ****
+        // Set the observable friendrequests list from the user profile
+        friendRequestsList = FXCollections.observableList(userProfile.getFriendRequestsList());
+        mainController.setFriendRequestListSource(friendRequestsList);
+
+        // Digest all pending friend requests in public user profile
+        for (FriendRequestMessage msg : publicUserProfile.getPendingFriendRequests()) {
+            handleIncomingFriendRequest(msg);
         }
+        publicUserProfile.getPendingFriendRequests().clear();
+
+        // Set current IP address in public user profile
+        publicUserProfile.setPeerAddress(p2p.getPeerAddress());
+
+        // Save public user profile
+        if (p2p.put(userID, publicUserProfile) == false) {
+            return new Pair<>(false, "Could not update public user profile");
+        }
+
+        // Set Title
+        mainController.setTitleText(userID);
+
+        // Show scene
+        Scene mainScene = new Scene(mainRoot);
+        mainStage.setScene(mainScene);
 
         // Set reply handler
         p2p.setObjectDataReply(new ObjectReplyHandler(this));
@@ -174,7 +190,7 @@ public class MainApp extends Application {
         friendsList.add(new FriendsListEntry(userID));
         friendsList.sort(new FriendsListComparator());
         mainController.updateFriendsListView();
-        
+
         // Send ping
         pingUser(userID, true, true);
 
@@ -205,7 +221,11 @@ public class MainApp extends Application {
                 return new Pair<>(false, "Error sending friend request");
             }
         } else {
-            return new Pair<>(false, "Friend doesn't seem to be online");
+            // Friend is not online, append to public profile
+            friendProfile.getPendingFriendRequests().add(friendRequestMessage);
+            if (p2p.put(userID, friendProfile) == false) {
+                return new Pair<>(false, "Error sending friend request");
+            }
         }
 
         // Addd as friend
@@ -287,7 +307,9 @@ public class MainApp extends Application {
 
     @Override
     public void stop() {
-        logout();
+        if (userProfile != null) {
+            logout();
+        }
         shutdown();
     }
 
@@ -356,7 +378,6 @@ public class MainApp extends Application {
     }
 
     private void pingAllFriends(boolean onlineStatus) {
-
         for (FriendsListEntry entry : friendsList) {
             String userID = entry.getUserID();
 
@@ -365,8 +386,8 @@ public class MainApp extends Application {
                 OnlineStatusMessage ping = new OnlineStatusMessage(userProfile.getUserID(),
                         onlineStatus, onlineStatus);
                 p2p.sendNonBlocking(entry.getPeerAddress(), ping);
-            } // If friend seems offline, only send out ping if we want to broadcast online=true
-            else if (entry.isOnline() == false && onlineStatus == true) {
+            } // If friend seems offline, only send out ping if we come online
+            else if (!entry.isOnline() && onlineStatus == true) {
                 // Get users public profile and read it's peer address
                 pingUser(userID, onlineStatus, onlineStatus);
 

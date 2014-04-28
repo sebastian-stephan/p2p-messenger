@@ -76,13 +76,10 @@ public class FXMLMainController implements Initializable {
         
         // Whenever a change occures (new or less friend requests, update button)
         observableFriendRequestList.addListener(new ListChangeListener() {
-
             @Override
             public void onChanged(ListChangeListener.Change c) {
                 buttonFriendRequests.setText(String.valueOf(c.getList().size()));
             }
-            
-            
         });
     }
 
@@ -113,14 +110,10 @@ public class FXMLMainController implements Initializable {
         friendRequestList = new ListView();
         friendRequestList.setPrefWidth(350);
         friendRequestList.setCellFactory(new Callback<ListView<FriendRequestMessage>, ListCell<FriendRequestMessage>>() {
-        
             @Override
             public ListCell<FriendRequestMessage> call(ListView<FriendRequestMessage> param) {
-                FriendRequestListCell cell = new FriendRequestListCell();
-
-                return cell;
+                return new FriendRequestListCell();
             }
-            
         });
 
         // Add fancy icons to the buttons
