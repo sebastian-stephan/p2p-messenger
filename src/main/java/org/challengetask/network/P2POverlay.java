@@ -81,7 +81,7 @@ public class P2POverlay {
         futureGet.addListener(baseFutureAdapter);
     }
     
-    public Pair<Boolean,String> bootstrap() {
+    public Pair<Boolean,String> bootstrap(String bootstrapIP) {
         int port = 4001;
 
         // Create TomP2P peer
@@ -102,7 +102,7 @@ public class P2POverlay {
         
 
         try {
-            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName("127.0.0.1")).setPorts(4001).start();
+            FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName(bootstrapIP)).setPorts(4001).start();
             futureBootstrap.awaitUninterruptibly();
             if (futureBootstrap.isSuccess())
                 return new Pair<>(true, "Bootstrap successful");

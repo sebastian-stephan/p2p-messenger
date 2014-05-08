@@ -119,7 +119,9 @@ public class FXMLMainController implements Initializable {
         // Add fancy icons to the buttons
         buttonAddFriend.setGraphic(GlyphFontRegistry.glyph("FontAwesome|PLUS"));
         buttonLogout.setGraphic(GlyphFontRegistry.glyph("FontAwesome|SIGNOUT"));
-        buttonFriendRequests.setGraphic(GlyphFontRegistry.glyph("FontAwesome|USER"));
+        //buttonFriendRequests.setGraphic(GlyphFontRegistry.glyph("FontAwesome|USER"));
+        // Pending Bug:
+        // https://bitbucket.org/controlsfx/controlsfx/issue/175/button-fontawesome-fontawesome-node-does
         buttonFriendRequests.setText("0");
 
         // Set up popover for friends request

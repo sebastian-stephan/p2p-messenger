@@ -1,19 +1,11 @@
 package org.challengetask;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
-import static javafx.application.Application.launch;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -67,7 +59,9 @@ public class MainApp extends Application {
         mainStage.show();
 
         // Try to bootstrap
-        Pair<Boolean, String> result = p2p.bootstrap();
+        String bootstrapIP = getParameters().getNamed().get("bootstrap");
+        bootstrapIP = (bootstrapIP == null) ? "127.0.0.1" : bootstrapIP;
+        Pair<Boolean, String> result = p2p.bootstrap(bootstrapIP);
         if (result.getKey() == false) {
             Dialogs.create().owner(mainStage)
                     .title("Bootstrap error")
@@ -400,5 +394,5 @@ public class MainApp extends Application {
 
         return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
     }
-
+    
 }
