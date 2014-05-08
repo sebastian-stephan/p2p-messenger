@@ -6,6 +6,7 @@
 
 package org.challengetask.messages;
 
+import net.tomp2p.peers.PeerAddress;
 import org.challengetask.PrivateUserProfile;
 
 /**
@@ -16,8 +17,8 @@ public class OnlineStatusMessage extends Message {
     final private boolean onlineStatus;
     final private boolean replyPongExpected;
 
-    public OnlineStatusMessage (String _senderUserID, boolean _onlineStatus, boolean _pongRequested) {
-        super(_senderUserID, "");
+    public OnlineStatusMessage (PeerAddress _senderPeerAddress, String _senderUserID, boolean _onlineStatus, boolean _pongRequested) {
+        super(_senderPeerAddress, _senderUserID, "");
         onlineStatus = _onlineStatus;
         replyPongExpected = _pongRequested;
     }

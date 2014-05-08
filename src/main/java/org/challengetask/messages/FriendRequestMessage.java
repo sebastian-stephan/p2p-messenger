@@ -6,6 +6,7 @@
 
 package org.challengetask.messages;
 
+import net.tomp2p.peers.PeerAddress;
 import org.challengetask.PrivateUserProfile;
 
 /**
@@ -15,8 +16,8 @@ import org.challengetask.PrivateUserProfile;
 public class FriendRequestMessage extends Message {
 
     
-    public FriendRequestMessage (String _senderUserID, String _messageText) {
-        super(_senderUserID, _messageText);
+    public FriendRequestMessage (PeerAddress _senderPeerAddress, String _senderUserID, String _messageText) {
+        super(_senderPeerAddress, _senderUserID, _messageText);
     }
    
 }

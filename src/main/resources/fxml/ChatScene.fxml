@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" minHeight="187.0" minWidth="184.0" prefHeight="349.00019999999495" prefWidth="376.25" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLChatController">
+  <children>
+    
+  </children>
+  <stylesheets>
+    <URL value="@../styles/Styles.css" />
+  </stylesheets>
+</AnchorPane>

@@ -7,6 +7,7 @@
 package org.challengetask.messages;
 
 import java.io.Serializable;
+import net.tomp2p.peers.PeerAddress;
 import org.challengetask.PrivateUserProfile;
 
 /**
@@ -15,11 +16,13 @@ import org.challengetask.PrivateUserProfile;
  */
 public abstract class Message implements Serializable {
     private final String senderUserID;
+    private final PeerAddress senderPeerAddress;
     protected final String messageText;
 
 
     
-    public Message (String _senderUserID, String _messageText) {
+    public Message (PeerAddress _senderPeerAddress, String _senderUserID, String _messageText) {
+        senderPeerAddress = _senderPeerAddress;
         senderUserID = _senderUserID;
         messageText = _messageText;
     }
@@ -36,6 +39,13 @@ public abstract class Message implements Serializable {
      */
     public String getMessageText() {
         return messageText;
+    }
+
+    /**
+     * @return the senderPeerAddress
+     */
+    public PeerAddress getSenderPeerAddress() {
+        return senderPeerAddress;
     }
     
 }

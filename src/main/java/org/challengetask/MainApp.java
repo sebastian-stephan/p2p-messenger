@@ -22,6 +22,7 @@ import org.challengetask.messages.FriendRequestMessage;
 import org.challengetask.messages.OnlineStatusMessage;
 import org.challengetask.network.ObjectReplyHandler;
 import org.challengetask.network.P2POverlay;
+import org.controlsfx.control.Notifications;
 import org.controlsfx.dialog.Dialogs;
 
 public class MainApp extends Application {
@@ -207,7 +208,7 @@ public class MainApp extends Application {
         PublicUserProfile friendProfile = (PublicUserProfile) p2p.get(userID);
 
         // Create friend request message
-        FriendRequestMessage friendRequestMessage = new FriendRequestMessage(userProfile.getUserID(), messageText);
+        FriendRequestMessage friendRequestMessage = new FriendRequestMessage(p2p.getPeerAddress(), userProfile.getUserID(), messageText);
 
         // Try to send direct friend request if other user is online
         if (friendProfile.getPeerAddress() != null) {
@@ -277,6 +278,31 @@ public class MainApp extends Application {
         // Show visual message
         mainController.showIncomingFriendRequest(requestMessage);
     }
+    
+    public void handleIncomingOnlineStatus(OnlineStatusMessage msg) {
+        synchronized (this) {
+            FriendsListEntry e = getFriendsListEntry(msg.getSenderUserID());
+
+            // If friend is in friendslist
+            if (e != null) {
+                // Set online
+                e.setOnline(msg.isOnline());
+                e.setPeerAddress(msg.getSenderPeerAddress());
+                
+                updateFriendsListView();
+                // Show notification
+                if (msg.isOnline()) {
+                    Notifications.create().text("User " + msg.getSenderUserID() + " just came online")
+                            .showInformation();
+                }
+
+                // Send pong back if wanted
+                if (msg.isReplyPongExpected()) {
+                    pingUser(msg.getSenderPeerAddress(), true, false);
+                }
+            }
+        }
+    }
 
     public String getUserID() {
         return (userProfile != null) ? userProfile.getUserID() : "error";
@@ -340,7 +366,7 @@ public class MainApp extends Application {
 
     public void pingUser(PeerAddress pa, boolean onlineStatus, boolean replyPongExpected) {
         // Send ping
-        OnlineStatusMessage msg = new OnlineStatusMessage(userProfile.getUserID(), onlineStatus, replyPongExpected);
+        OnlineStatusMessage msg = new OnlineStatusMessage(p2p.getPeerAddress(), userProfile.getUserID(), onlineStatus, replyPongExpected);
         p2p.sendNonBlocking(pa, msg);
     }
 
@@ -377,7 +403,7 @@ public class MainApp extends Application {
 
             // Assuming online friends have the correct peer address
             if (entry.isOnline()) {
-                OnlineStatusMessage ping = new OnlineStatusMessage(userProfile.getUserID(),
+                OnlineStatusMessage ping = new OnlineStatusMessage(p2p.getPeerAddress(), userProfile.getUserID(),
                         onlineStatus, onlineStatus);
                 p2p.sendNonBlocking(entry.getPeerAddress(), ping);
             } // If friend seems offline, only send out ping if we come online
