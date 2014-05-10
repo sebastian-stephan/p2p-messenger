@@ -11,6 +11,7 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.challengetask.FriendsListEntry;
 import org.challengetask.MainApp;
+import org.challengetask.messages.ChatMessage;
 import org.challengetask.messages.FriendRequestMessage;
 import org.challengetask.messages.OnlineStatusMessage;
 import org.controlsfx.control.Notifications;
@@ -37,6 +38,12 @@ public class ObjectReplyHandler implements ObjectDataReply {
         } else if (o instanceof OnlineStatusMessage) {
             Runnable task = () -> {
                 mainApp.handleIncomingOnlineStatus((OnlineStatusMessage) o);
+            };
+            Platform.runLater(task);
+        } else if (o instanceof ChatMessage) {
+            Runnable task = () -> {
+                ChatMessage msg = (ChatMessage)o;
+                mainApp.handleIncomingChatMessage(msg);
             };
             Platform.runLater(task);
         }

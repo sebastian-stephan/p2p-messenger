@@ -8,9 +8,15 @@
 <?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" minHeight="187.0" minWidth="184.0" prefHeight="349.00019999999495" prefWidth="376.25" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLChatController">
+<AnchorPane id="AnchorPane" minHeight="187.0" minWidth="184.0" prefHeight="350.00019999999495" prefWidth="381.25" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLChatController">
   <children>
-    
+    <ScrollPane fx:id="scrollPane" prefHeight="287.0" prefWidth="377.0" AnchorPane.bottomAnchor="48.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="13.25" AnchorPane.topAnchor="14.0">
+      <content>
+        <VBox fx:id="vBoxChatHistory" />
+      </content>
+    </ScrollPane>
+    <TextField fx:id="textMessage" prefHeight="24.0" prefWidth="325.0" AnchorPane.bottomAnchor="14.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="78.0" />
+    <Button fx:id="buttonSend" mnemonicParsing="false" text="Send" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="14.25" />
   </children>
   <stylesheets>
     <URL value="@../styles/Styles.css" />

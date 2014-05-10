@@ -1,23 +1,29 @@
 package org.challengetask;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Pair;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureGet;
 import net.tomp2p.peers.PeerAddress;
 import org.challengetask.audio.OpusSoundTest;
+import org.challengetask.gui.FXMLChatController;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
 import org.challengetask.gui.FriendsListComparator;
+import org.challengetask.messages.ChatMessage;
 import org.challengetask.messages.FriendRequestMessage;
 import org.challengetask.messages.OnlineStatusMessage;
 import org.challengetask.network.ObjectReplyHandler;
@@ -38,10 +44,17 @@ public class MainApp extends Application {
     private PrivateUserProfile userProfile;
     private ObservableList<FriendsListEntry> friendsList;
     private ObservableList<FriendRequestMessage> friendRequestsList;
+    private Map<FriendsListEntry, FXMLChatController> openChats = new HashMap<>();
 
     @Override
     public void start(Stage stage) throws Exception {
         mainStage = stage;
+        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent event) {
+                stop();
+            }
+        });
 
         // Setup network stuff
         p2p = new P2POverlay();
@@ -213,7 +226,7 @@ public class MainApp extends Application {
         // Try to send direct friend request if other user is online
         if (friendProfile.getPeerAddress() != null) {
             if (p2p.send(friendProfile.getPeerAddress(), friendRequestMessage) == false) {
-                return new Pair<>(false, "Error sending friend request");
+                return new Pair<>(false, "Error sending direct friend request");
             }
         } else {
             // Friend is not online, append to public profile
@@ -278,7 +291,7 @@ public class MainApp extends Application {
         // Show visual message
         mainController.showIncomingFriendRequest(requestMessage);
     }
-    
+
     public void handleIncomingOnlineStatus(OnlineStatusMessage msg) {
         synchronized (this) {
             FriendsListEntry e = getFriendsListEntry(msg.getSenderUserID());
@@ -288,7 +301,7 @@ public class MainApp extends Application {
                 // Set online
                 e.setOnline(msg.isOnline());
                 e.setPeerAddress(msg.getSenderPeerAddress());
-                
+
                 updateFriendsListView();
                 // Show notification
                 if (msg.isOnline()) {
@@ -302,6 +315,61 @@ public class MainApp extends Application {
                 }
             }
         }
+    }
+
+    public void handleIncomingChatMessage(ChatMessage msg) {
+        synchronized (openChats) {
+            FriendsListEntry e = getFriendsListEntry(msg.getSenderUserID());
+
+            // If friend is in friendslist
+            if (e != null) {
+                // Is there already a chat window open?
+                FXMLChatController openChat = openChats.get(e);
+                if (openChat == null) {
+                    openChatWindow(e);
+                    openChat = openChats.get(e);
+                } 
+                
+                // Send chat message to controller
+                openChat.showIncomingChatMessage(msg.getSenderUserID(), msg.getMessageText());
+            }
+        }
+    }
+
+    
+
+    public void openChatWindow(FriendsListEntry friend) {
+        // Check if there is already a chat window open
+        if (openChats.containsKey(friend)) {
+            openChats.get(friend).getStage().requestFocus();
+        } else {
+            Parent chatRoot = null;
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("/fxml/ChatScene.fxml"));
+            try {
+                chatRoot = fxmlLoader.load();
+            } catch (IOException ex) {
+                Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            Stage stage = new Stage();
+            stage.setTitle("Chat");
+            stage.setScene(new Scene(chatRoot, 450, 300));
+            stage.show();
+
+            FXMLChatController controller = fxmlLoader.getController();
+            controller.initController(this, stage, friend);
+
+            openChats.put(friend, controller);
+        }
+    }
+
+    public void sendChatMessage(String text, FriendsListEntry friendsListEntry) {
+        ChatMessage chatMessage = new ChatMessage(p2p.getPeerAddress(), userProfile.getUserID(), text);
+        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), chatMessage);
+    }
+
+    public void removeChatWindow(FriendsListEntry friend) {
+        openChats.remove(friend);
     }
 
     public String getUserID() {
@@ -334,6 +402,12 @@ public class MainApp extends Application {
     }
 
     public void logout() {
+        // Close all chat windows
+        for (FXMLChatController controller : openChats.values()) {
+            controller.closeChat();
+        }
+        openChats.clear();
+
         // Tell "friends" that i'm going offline
         pingAllFriends(false);
 
@@ -349,6 +423,8 @@ public class MainApp extends Application {
             System.out.println("Could not update peer address in public user profile");
             return;
         }
+        
+        p2p.setObjectDataReply(null);
 
         userProfile = null;
         friendsList = null;
@@ -420,5 +496,5 @@ public class MainApp extends Application {
 
         return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
     }
-    
+
 }

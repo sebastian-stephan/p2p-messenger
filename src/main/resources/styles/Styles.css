@@ -45,6 +45,13 @@
     -fx-padding: 4 7 4 7;
 }
 
+.chatButton {
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-font-size: 10pt;
+    -fx-padding: 4 7 4 7;
+}
+
 .buttonFriendRequest {
     -fx-background-color: #f8c202;
     -fx-background-radius: 8;
@@ -74,4 +81,12 @@
 
 #labelErrorMessage {
     -fx-text-fill: indianred;
+}
+
+.chatMessageSelf {
+    -fx-text-fill: #0077DB;
+}
+
+chatMessageFriend {
+    -fx-text-fill: #e68400;
 }

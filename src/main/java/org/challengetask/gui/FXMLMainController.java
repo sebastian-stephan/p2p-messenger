@@ -37,7 +37,7 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 public class FXMLMainController implements Initializable {
 
     private MainApp mainApp;
-    
+
     private PopOver friendRequestsPopover;
     private ListView friendRequestList;
 
@@ -59,21 +59,21 @@ public class FXMLMainController implements Initializable {
     public void setFriendsListSource(ObservableList list) {
         friendsList.setItems(list);
     }
-    
+
     public void updateFriendsListView() {
         ObservableList list = friendsList.getItems();
         list.sort(new FriendsListComparator());
         friendsList.setItems(null);
         friendsList.setItems(list);
     }
-    
+
     public void setFriendRequestListSource(ObservableList observableFriendRequestList) {
         // Bind friend requests list to data
         friendRequestList.setItems(observableFriendRequestList);
-        
+
         // Update button text with number of pending requests
         buttonFriendRequests.setText(String.valueOf(observableFriendRequestList.size()));
-        
+
         // Whenever a change occures (new or less friend requests, update button)
         observableFriendRequestList.addListener(new ListChangeListener() {
             @Override
@@ -105,7 +105,7 @@ public class FXMLMainController implements Initializable {
             }
 
         });
-        
+
         // Set up custom friend request list vew
         friendRequestList = new ListView();
         friendRequestList.setPrefWidth(350);
@@ -129,17 +129,17 @@ public class FXMLMainController implements Initializable {
         friendRequestsPopover.setArrowLocation(PopOver.ArrowLocation.TOP_LEFT);
         friendRequestsPopover.setDetachable(false);
         friendRequestsPopover.setAutoHide(true);
-        
+
         
     }
-    
+
     class FriendRequestListCell extends ListCell<FriendRequestMessage> {
-        
+
         @Override
         public void updateItem(FriendRequestMessage _item, boolean _empty) {
             super.updateItem(_item, _empty);
-            
-            if(!_empty) {
+
+            if (!_empty) {
                 VBox vBox = new VBox();
                 vBox.setSpacing(10);
                 VBox.setVgrow(vBox, Priority.ALWAYS);
@@ -160,7 +160,7 @@ public class FXMLMainController implements Initializable {
                     mainApp.acceptFriendRequest(_item);
                     friendRequestsPopover.hide();
                 });
-                
+
                 Button declineButton = new Button("Decline");
                 declineButton.setOnAction((ActionEvent event) -> {
                     mainApp.declineFriendRequest(_item);
@@ -168,20 +168,20 @@ public class FXMLMainController implements Initializable {
                 });
                 acceptButton.getStyleClass().add("buttonFriendRequest");
                 declineButton.getStyleClass().add("buttonFriendRequest");
-                
+
                 rightHbox.getChildren().addAll(acceptButton, declineButton);
                 leftHbox.getChildren().addAll(userName, rightHbox);
-                
+
                 Label message = new Label(_item.getMessageText());
                 message.setWrapText(true);
-                
+
                 vBox.getChildren().addAll(leftHbox, message);
-                
+
                 setGraphic(vBox);
-                
+
                 setPrefHeight(100);
                 setPrefWidth(friendRequestList.getWidth());
-                
+
             } else {
                 setGraphic(null);
                 setText(null);
@@ -211,6 +211,7 @@ public class FXMLMainController implements Initializable {
 
                 if (_item.isOnline()) {
                     circle.setFill(Color.GREEN);
+
                     Button callButton = new Button("Call");
                     callButton.getStyleClass().add("callButton");
                     callButton.setGraphic(GlyphFontRegistry.glyph("FontAwesome|PHONE"));
@@ -225,7 +226,23 @@ public class FXMLMainController implements Initializable {
                         }
 
                     });
-                    rightHbox.getChildren().add(callButton);
+
+                    Button chatButton = new Button("Chat");
+                    chatButton.getStyleClass().add("chatButton");
+                    chatButton.setGraphic(GlyphFontRegistry.glyph("FontAwesome|COMMENTS"));
+                    chatButton.setOnAction(new EventHandler<ActionEvent>() {
+                        
+                        @Override
+                        public void handle(ActionEvent event) {
+                            mainApp.openChatWindow(_item);
+                            Notifications.create().title("Chat")
+                                    .text("Chat  " + _item.getUserID())
+                                    .show();
+                        }
+
+                    });
+
+                    rightHbox.getChildren().addAll(chatButton, callButton);
                 }
 
                 leftHbox.getChildren().addAll(circle, label, rightHbox);
@@ -268,11 +285,12 @@ public class FXMLMainController implements Initializable {
         final double yBase = windowCoord.getY() + nodeCoord.getY();
         final double xOff = 28; //TODO: fix magic numbers
         final double yOff = 71;
-        
-        if (friendRequestsPopover.isShowing())
+
+        if (friendRequestsPopover.isShowing()) {
             friendRequestsPopover.hide();
-        else
+        } else {
             friendRequestsPopover.show(buttonFriendRequests, xBase + xOff, yBase + yOff);
+        }
 
     }
 

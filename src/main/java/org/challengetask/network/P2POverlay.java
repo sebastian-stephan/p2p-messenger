@@ -14,6 +14,7 @@ import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDirect;
+import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.futures.FutureGet;
 import net.tomp2p.futures.FuturePut;
 import net.tomp2p.p2p.Peer;
@@ -31,11 +32,11 @@ public class P2POverlay {
 
     private Peer peer;
     private static Random rnd = new Random();
-    
+
     public PeerAddress getPeerAddress() {
         return peer.getPeerAddress();
     }
-    
+
     public boolean put(String key, Object value) {
         Data data;
         try {
@@ -43,17 +44,17 @@ public class P2POverlay {
         } catch (IOException ex) {
             return false;
         }
-        
+
         FuturePut futurePut = peer.put(Number160.createHash(key)).setData(data).start()
-                   .awaitUninterruptibly();
-        
+                .awaitUninterruptibly();
+
         return futurePut.isSuccess();
     }
-    
+
     public Object get(String key) {
         FutureGet futureGet = peer.get(Number160.createHash(key)).start().awaitUninterruptibly();
-        
-        if(futureGet.isSuccess()) {
+
+        if (futureGet.isSuccess()) {
             try {
                 return futureGet.getData().object();
             } catch (ClassNotFoundException | IOException ex) {
@@ -67,21 +68,21 @@ public class P2POverlay {
     public boolean send(PeerAddress recipient, Object o) {
         FutureDirect futureDirect = peer.sendDirect(recipient)
                 .setObject(o).start().awaitUninterruptibly();
-        
+
         return futureDirect.isSuccess();
     }
-    
+
     public void sendNonBlocking(PeerAddress recipient, Object o) {
         FutureDirect frutureDirect = peer.sendDirect(recipient)
                 .setObject(o).start();
     }
-    
+
     public void getNonBLocking(String key, BaseFutureAdapter<FutureGet> baseFutureAdapter) {
         FutureGet futureGet = peer.get(Number160.createHash(key)).start();
         futureGet.addListener(baseFutureAdapter);
     }
-    
-    public Pair<Boolean,String> bootstrap(String bootstrapIP) {
+
+    public Pair<Boolean, String> bootstrap(String bootstrapIP) {
         int port = 4001;
 
         // Create TomP2P peer
@@ -97,30 +98,32 @@ public class P2POverlay {
         } while (!peerCreated && port < 4010);
 
         if (!peerCreated) {
-            return new Pair<>(false,"Could not find any unused port");
+            return new Pair<>(false, "Could not find any unused port");
         }
-        
 
         try {
             FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName(bootstrapIP)).setPorts(4001).start();
             futureBootstrap.awaitUninterruptibly();
-            if (futureBootstrap.isSuccess())
+            if (futureBootstrap.isSuccess()) {
                 return new Pair<>(true, "Bootstrap successful");
-            else
+            } else {
                 return new Pair<>(false, "Could not bootstrap to well known peer");
+            }
         } catch (UnknownHostException ex) {
             return new Pair<>(false, "Unknown bootstrap host. (UnknownHostException)");
         }
-        
+
     }
-    
+
     public void setObjectDataReply(ObjectDataReply replyHandler) {
         peer.setObjectDataReply(replyHandler);
-    } 
+    }
 
     public void shutdown() {
-        BaseFuture shutdownBuilder = peer.shutdown();
-        shutdownBuilder.awaitUninterruptibly();
-        peer = null;
+        if (peer != null) {
+            BaseFuture shutdownBuilder = peer.shutdown();
+            shutdownBuilder.awaitUninterruptibly();
+            peer = null;
+        }
     }
 }
