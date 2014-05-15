@@ -1,5 +1,8 @@
 package org.challengetask;
 
+import org.challengetask.usermanagement.PrivateUserProfile;
+import org.challengetask.usermanagement.PublicUserProfile;
+import org.challengetask.usermanagement.FriendsListEntry;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,6 +87,7 @@ public class MainApp extends Application {
             mainStage.close();
         }
     }
+
 
     public Pair<Boolean, String> createAccount(String userID, String password) {
         // Check if the user is already in the friendslist

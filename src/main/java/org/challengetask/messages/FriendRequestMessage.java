@@ -7,7 +7,7 @@
 package org.challengetask.messages;
 
 import net.tomp2p.peers.PeerAddress;
-import org.challengetask.PrivateUserProfile;
+import org.challengetask.usermanagement.PrivateUserProfile;
 
 /**
  *

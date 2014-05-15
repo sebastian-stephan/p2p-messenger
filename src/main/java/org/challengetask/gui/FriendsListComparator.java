@@ -7,7 +7,7 @@
 package org.challengetask.gui;
 
 import java.util.Comparator;
-import org.challengetask.FriendsListEntry;
+import org.challengetask.usermanagement.FriendsListEntry;
 
 /**
  *

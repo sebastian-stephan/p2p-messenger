@@ -26,7 +26,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.util.Callback;
 import javafx.util.Pair;
-import org.challengetask.FriendsListEntry;
+import org.challengetask.usermanagement.FriendsListEntry;
 import org.challengetask.MainApp;
 import org.challengetask.messages.FriendRequestMessage;
 import org.controlsfx.control.Notifications;

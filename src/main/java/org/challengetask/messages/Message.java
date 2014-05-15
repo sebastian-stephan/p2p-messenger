@@ -8,7 +8,7 @@ package org.challengetask.messages;
 
 import java.io.Serializable;
 import net.tomp2p.peers.PeerAddress;
-import org.challengetask.PrivateUserProfile;
+import org.challengetask.usermanagement.PrivateUserProfile;
 
 /**
  *

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package org.challengetask;
+package org.challengetask.usermanagement;
 
 import java.io.Serializable;
 import java.security.PublicKey;

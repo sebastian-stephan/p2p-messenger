@@ -9,7 +9,7 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
-import org.challengetask.FriendsListEntry;
+import org.challengetask.usermanagement.FriendsListEntry;
 import org.challengetask.MainApp;
 import org.challengetask.messages.ChatMessage;
 import org.challengetask.messages.FriendRequestMessage;

@@ -15,7 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import org.challengetask.FriendsListEntry;
+import org.challengetask.usermanagement.FriendsListEntry;
 import org.challengetask.MainApp;
 
 public class FXMLChatController implements Initializable {
