@@ -130,7 +130,6 @@ public class FXMLMainController implements Initializable {
         friendRequestsPopover.setDetachable(false);
         friendRequestsPopover.setAutoHide(true);
 
-        
     }
 
     class FriendRequestListCell extends ListCell<FriendRequestMessage> {
@@ -220,9 +219,6 @@ public class FXMLMainController implements Initializable {
                         @Override
                         public void handle(ActionEvent event) {
                             mainApp.sendCallRequest(_item);
-                            Notifications.create().title("Call")
-                                    .text("Calling " + _item.getUserID())
-                                    .show();
                         }
 
                     });
@@ -231,7 +227,7 @@ public class FXMLMainController implements Initializable {
                     chatButton.getStyleClass().add("chatButton");
                     chatButton.setGraphic(GlyphFontRegistry.glyph("FontAwesome|COMMENTS"));
                     chatButton.setOnAction(new EventHandler<ActionEvent>() {
-                        
+
                         @Override
                         public void handle(ActionEvent event) {
                             mainApp.openChatWindow(_item);

@@ -20,6 +20,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 import net.tomp2p.opuswrapper.Opus;
+import org.challengetask.MainApp;
 import org.challengetask.messages.AudioFrame;
 import org.challengetask.network.P2POverlay;
 import org.challengetask.usermanagement.FriendsListEntry;
@@ -47,10 +48,10 @@ public class CallHandler {
 
     private P2POverlay p2p;
     private FriendsListEntry friend;
-    private PrivateUserProfile userProfile;
+    private MainApp mainApp;
 
-    public CallHandler(PrivateUserProfile _userProfile, P2POverlay _p2p, FriendsListEntry _friend) {
-        userProfile = _userProfile;
+    public CallHandler(MainApp _mainApp, P2POverlay _p2p, FriendsListEntry _friend) {
+        mainApp = _mainApp;
         p2p = _p2p;
         friend = _friend;
     }
@@ -77,6 +78,7 @@ public class CallHandler {
             System.out.println("InterruptedException");
         }
     }
+    
 
     public void stop() {
         running = false;
@@ -115,8 +117,7 @@ public class CallHandler {
                     try {
                         byte dataFromMic[] = recordFromMicrophone(format);
                         if (dataFromMic != null) {
-                            //incomingAudioBuffer.put(dataFromMic);
-                            AudioFrame frame = new AudioFrame(p2p.getPeerAddress(), userProfile.getUserID(), dataFromMic);
+                            AudioFrame frame = new AudioFrame(p2p.getPeerAddress(), mainApp.getUserID(), dataFromMic);
                             p2p.sendNonBlocking(friend.getPeerAddress(), frame);
                         }
 
@@ -127,6 +128,7 @@ public class CallHandler {
 
                 }
                 microphone.close();
+                System.out.println("End of recording");
             }
         }
 
@@ -171,6 +173,7 @@ public class CallHandler {
                     }
                 }
                 speaker.close();
+                System.out.println("End of playing");
             }
         }
 

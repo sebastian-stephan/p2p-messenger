@@ -11,6 +11,7 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import org.challengetask.MainApp;
 import org.challengetask.messages.AudioFrame;
+import org.challengetask.messages.CallAcceptMessage;
 import org.challengetask.messages.CallRequestMessage;
 import org.challengetask.messages.ChatMessage;
 import org.challengetask.messages.FriendRequestMessage;
@@ -52,6 +53,12 @@ public class ObjectReplyHandler implements ObjectDataReply {
             Runnable task = () -> {
                 CallRequestMessage msg = (CallRequestMessage) o;
                 mainApp.handleIncomingCallRequestMessage(msg);
+            };
+            Platform.runLater(task);
+        } else if (o instanceof CallAcceptMessage) {
+            Runnable task = () -> {
+                CallAcceptMessage msg = (CallAcceptMessage) o;
+                mainApp.handleIncomingCallAcceptMessage(msg);
             };
             Platform.runLater(task);
         } else if (o instanceof AudioFrame) {

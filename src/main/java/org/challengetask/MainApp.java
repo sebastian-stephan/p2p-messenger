@@ -19,12 +19,14 @@ import javax.sound.sampled.LineUnavailableException;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureGet;
 import net.tomp2p.peers.PeerAddress;
-import org.challengetask.messages.AudioFrame;
 import org.challengetask.audio.CallHandler;
+import org.challengetask.gui.FXMLCallController;
 import org.challengetask.gui.FXMLChatController;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
 import org.challengetask.gui.FriendsListComparator;
+import org.challengetask.messages.AudioFrame;
+import org.challengetask.messages.CallAcceptMessage;
 import org.challengetask.messages.CallRequestMessage;
 import org.challengetask.messages.ChatMessage;
 import org.challengetask.messages.FriendRequestMessage;
@@ -43,9 +45,9 @@ public class MainApp extends Application {
     private Scene loginScene;
     private FXMLLoginController loginController;
     private FXMLMainController mainController;
+    private FXMLCallController activeCallController;
 
     private P2POverlay p2p;
-    private CallHandler callHandler;
 
     private PrivateUserProfile userProfile;
     private ObservableList<FriendsListEntry> friendsList;
@@ -99,16 +101,11 @@ public class MainApp extends Application {
         System.out.println("Bootstrapped to: " + bootstrapIP
                 + "My IP: " + p2p.getPeerAddress().getInetAddress().getHostAddress());
 
-        //callHandler = new CallHandler(userProfile, p2p, null);
-        //try {
-        //    callHandler.start();
-        //} catch (LineUnavailableException ex) {
-        //    callHandler.stop();
-        //    callHandler = null;
-        //    System.out.println("LineUnavailableException");
-        //}
     }
 
+    /**
+     * User Account Management *
+     */
     public Pair<Boolean, String> createAccount(String userID, String password) {
         // Check if the user is already in the friendslist
 
@@ -213,6 +210,52 @@ public class MainApp extends Application {
         return new Pair<>(true, "Login successful");
     }
 
+    public void logout() {
+        // Close all chat windows
+        for (FXMLChatController controller : openChats.values()) {
+            controller.closeChat();
+        }
+        openChats.clear();
+
+        // Tell "friends" that i'm going offline
+        pingAllFriends(false);
+
+        // Set PeerAddress in public Profile to null
+        Object objectPublicUserProfile = p2p.get(userProfile.getUserID());
+        if (objectPublicUserProfile == null) {
+            System.out.println("Could not retrieve public userprofile");
+            return;
+        }
+        PublicUserProfile publicUserProfile = (PublicUserProfile) objectPublicUserProfile;
+        publicUserProfile.setPeerAddress(null);
+        if (p2p.put(userProfile.getUserID(), publicUserProfile) == false) {
+            System.out.println("Could not update peer address in public user profile");
+            return;
+        }
+
+        p2p.setObjectDataReply(null);
+
+        userProfile = null;
+        friendsList = null;
+
+        // Change back to login screen
+        mainStage.setScene(loginScene);
+
+    }
+
+    public String getUserID() {
+        return (userProfile != null) ? userProfile.getUserID() : "error";
+    }
+
+    private boolean savePrivateUserProfile() {
+        // TODO: encrypt before saving
+
+        return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
+    }
+
+    /**
+     * Friends Management *
+     */
     public boolean existsUser(String userID) {
         return (p2p.get(userID) != null);
     }
@@ -341,101 +384,6 @@ public class MainApp extends Application {
         }
     }
 
-    public void handleIncomingChatMessage(ChatMessage msg) {
-        synchronized (openChats) {
-            FriendsListEntry e = getFriendsListEntry(msg.getSenderUserID());
-
-            // If friend is in friendslist
-            if (e != null) {
-                // Is there already a chat window open?
-                FXMLChatController openChat = openChats.get(e);
-                if (openChat == null) {
-                    openChatWindow(e);
-                    openChat = openChats.get(e);
-                }
-
-                // Send chat message to controller
-                openChat.showIncomingChatMessage(msg.getSenderUserID(), msg.getMessageText());
-            }
-        }
-    }
-
-    public void handleIncomingCallRequestMessage(CallRequestMessage msg) {
-        synchronized (this) {
-            FriendsListEntry friend = getFriendsListEntry(msg.getSenderUserID());
-
-            // If friend is in friendslist
-            if (friend != null) {
-                // TODO: Is there already a call window open?
-
-                callHandler = new CallHandler(userProfile, p2p, friend);
-                try {
-                    callHandler.start();
-                } catch (LineUnavailableException ex) {
-                    callHandler.stop();
-                    callHandler = null;
-                    System.out.println("LineUnavailableException");
-                }
-            }
-        }
-    }
-
-    public void handleIncomingAudioFrame(AudioFrame frame) {
-        callHandler.addAudioFrame(frame.getData());
-    }
-
-    public void openChatWindow(FriendsListEntry friend) {
-        // Check if there is already a chat window open
-        if (openChats.containsKey(friend)) {
-            openChats.get(friend).getStage().requestFocus();
-        } else {
-            Parent chatRoot = null;
-            FXMLLoader fxmlLoader = new FXMLLoader();
-            fxmlLoader.setLocation(getClass().getResource("/fxml/ChatScene.fxml"));
-            try {
-                chatRoot = fxmlLoader.load();
-            } catch (IOException ex) {
-                Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            Stage stage = new Stage();
-            stage.setTitle("Chat");
-            stage.setScene(new Scene(chatRoot, 450, 300));
-            stage.show();
-
-            FXMLChatController controller = fxmlLoader.getController();
-            controller.initController(this, stage, friend);
-
-            openChats.put(friend, controller);
-        }
-    }
-
-    public void sendChatMessage(String text, FriendsListEntry friendsListEntry) {
-        ChatMessage chatMessage = new ChatMessage(p2p.getPeerAddress(), userProfile.getUserID(), text);
-        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), chatMessage);
-    }
-
-    public void sendCallRequest(FriendsListEntry friendsListEntry) {
-        CallRequestMessage callRequestMessage = new CallRequestMessage(p2p.getPeerAddress(), userProfile.getUserID());
-        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), callRequestMessage);
-
-        callHandler = new CallHandler(userProfile, p2p, friendsListEntry);
-        try {
-            callHandler.start();
-        } catch (LineUnavailableException ex) {
-            callHandler.stop();
-            callHandler = null;
-            System.out.println("LineUnavailableException");
-        }
-    }
-
-    public void removeChatWindow(FriendsListEntry friend) {
-        openChats.remove(friend);
-    }
-
-    public String getUserID() {
-        return (userProfile != null) ? userProfile.getUserID() : "error";
-    }
-
     public ObservableList<FriendsListEntry> getFriendsList() {
         return friendsList;
     }
@@ -451,57 +399,6 @@ public class MainApp extends Application {
 
     public void updateFriendsListView() {
         mainController.updateFriendsListView();
-    }
-
-    @Override
-    public void stop() {
-        if (userProfile != null) {
-            logout();
-        }
-        shutdown();
-    }
-
-    public void logout() {
-        // Close all chat windows
-        for (FXMLChatController controller : openChats.values()) {
-            controller.closeChat();
-        }
-        openChats.clear();
-
-        // Tell "friends" that i'm going offline
-        pingAllFriends(false);
-
-        // Set PeerAddress in public Profile to null
-        Object objectPublicUserProfile = p2p.get(userProfile.getUserID());
-        if (objectPublicUserProfile == null) {
-            System.out.println("Could not retrieve public userprofile");
-            return;
-        }
-        PublicUserProfile publicUserProfile = (PublicUserProfile) objectPublicUserProfile;
-        publicUserProfile.setPeerAddress(null);
-        if (p2p.put(userProfile.getUserID(), publicUserProfile) == false) {
-            System.out.println("Could not update peer address in public user profile");
-            return;
-        }
-
-        p2p.setObjectDataReply(null);
-
-        userProfile = null;
-        friendsList = null;
-
-        // Change back to login screen
-        mainStage.setScene(loginScene);
-
-    }
-
-    public void shutdown() {
-        // Stop the sound test
-        if (callHandler != null) {
-            callHandler.stop();
-        }
-
-        // Shutdown Tom P2P stuff
-        p2p.shutdown();
     }
 
     public void pingUser(PeerAddress pa, boolean onlineStatus, boolean replyPongExpected) {
@@ -555,10 +452,161 @@ public class MainApp extends Application {
         }
     }
 
-    private boolean savePrivateUserProfile() {
-        // TODO: encrypt before saving
+    /**
+     * Chat functionality *
+     */
+    public void openChatWindow(FriendsListEntry friend) {
+        // Check if there is already a chat window open
+        if (openChats.containsKey(friend)) {
+            openChats.get(friend).getStage().requestFocus();
+        } else {
+            Parent chatRoot = null;
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("/fxml/ChatScene.fxml"));
+            try {
+                chatRoot = fxmlLoader.load();
+            } catch (IOException ex) {
+                Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            Stage stage = new Stage();
+            stage.setTitle("Chat");
+            stage.setScene(new Scene(chatRoot, 450, 300));
 
-        return p2p.put(userProfile.getUserID() + userProfile.getPassword(), userProfile);
+            FXMLChatController controller = fxmlLoader.getController();
+            controller.initController(this, stage, friend);
+
+            openChats.put(friend, controller);
+
+            stage.show();
+            stage.requestFocus();
+        }
+    }
+
+    public void removeChatWindow(FriendsListEntry friend) {
+        openChats.remove(friend);
+    }
+
+    public void sendChatMessage(String text, FriendsListEntry friendsListEntry) {
+        ChatMessage chatMessage = new ChatMessage(p2p.getPeerAddress(), userProfile.getUserID(), text);
+        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), chatMessage);
+    }
+
+    public void handleIncomingChatMessage(ChatMessage msg) {
+        synchronized (openChats) {
+            FriendsListEntry e = getFriendsListEntry(msg.getSenderUserID());
+
+            // If friend is in friendslist
+            if (e != null) {
+                // Is there already a chat window open?
+                FXMLChatController openChat = openChats.get(e);
+                if (openChat == null) {
+                    openChatWindow(e);
+                    openChat = openChats.get(e);
+                }
+
+                // Send chat message to controller
+                openChat.showIncomingChatMessage(msg.getSenderUserID(), msg.getMessageText());
+            }
+        }
+    }
+
+    /**
+     * Call functionality *
+     */
+    public void openCallWindow(FriendsListEntry friend, boolean _incoming) {
+        Parent callRoot = null;
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        fxmlLoader.setLocation(getClass().getResource("/fxml/CallScene.fxml"));
+        try {
+            callRoot = fxmlLoader.load();
+        } catch (IOException ex) {
+            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Stage stage = new Stage();
+        stage.setTitle("Call");
+        stage.setScene(new Scene(callRoot));
+        stage.setResizable(false);
+
+        FXMLCallController controller = fxmlLoader.getController();
+        controller.initController(this, p2p, stage, friend, _incoming);
+        activeCallController = controller;
+
+        stage.show();
+        stage.requestFocus();
+    }
+
+    public void closeActiveCall() {
+        activeCallController = null;
+    }
+
+    public void sendCallRequest(FriendsListEntry friendsListEntry) {
+        // Show call window
+        openCallWindow(friendsListEntry, false);
+
+        // Send call request
+        CallRequestMessage callRequestMessage = new CallRequestMessage(p2p.getPeerAddress(), userProfile.getUserID());
+        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), callRequestMessage);
+    }
+
+    public void handleIncomingCallRequestMessage(CallRequestMessage msg) {
+        synchronized (this) {
+            FriendsListEntry friend = getFriendsListEntry(msg.getSenderUserID());
+
+            // Only handle call requests from users in friendslist
+            if (friend != null) {
+                // Check if user is busy with other call
+                if (activeCallController != null) {
+                    // Send decline, we're busy with another call
+                    CallAcceptMessage callAcceptMessage = new CallAcceptMessage(p2p.getPeerAddress(), getUserID());
+                    callAcceptMessage.setAccept(false);
+                    p2p.sendNonBlocking(msg.getSenderPeerAddress(), callAcceptMessage);
+                } else {
+                    // Show incoming call
+                    Notifications.create().title("Incoming call")
+                            .text(msg.getSenderUserID() + " is calling")
+                            .show();
+                    openCallWindow(friend, true);
+                }
+            }
+        }
+    }
+
+    public void handleIncomingCallAcceptMessage(CallAcceptMessage msg) {
+        synchronized (this) {
+            if (activeCallController != null
+                    && activeCallController.getFriendsListEntry().getUserID().equals(msg.getSenderUserID())) {
+                activeCallController.handleIncomingCallAcceptMessage(msg);
+            }
+        }
+    }
+
+    public void handleIncomingAudioFrame(AudioFrame frame) {
+        if (activeCallController != null
+                && activeCallController.getFriendsListEntry().getUserID().equals(frame.getSenderUserID())) {
+            activeCallController.handleIncomingAudioFrame(frame);
+        }
+    }
+
+    /**
+     * Application shutdown *
+     */
+    @Override
+    public void stop() {
+        if (userProfile != null) {
+            logout();
+        }
+        shutdown();
+    }
+
+    public void shutdown() {
+        // Stop active calls
+        if (activeCallController != null) {
+            activeCallController.stopTransmitting();
+            activeCallController.closeCall();
+        }
+
+        // Shutdown Tom P2P stuff
+        p2p.shutdown();
     }
 
 }
