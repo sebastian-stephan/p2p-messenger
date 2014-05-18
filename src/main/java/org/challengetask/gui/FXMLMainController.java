@@ -219,7 +219,7 @@ public class FXMLMainController implements Initializable {
 
                         @Override
                         public void handle(ActionEvent event) {
-                            //mainApp.call(_item.getUserID());
+                            mainApp.sendCallRequest(_item);
                             Notifications.create().title("Call")
                                     .text("Calling " + _item.getUserID())
                                     .show();

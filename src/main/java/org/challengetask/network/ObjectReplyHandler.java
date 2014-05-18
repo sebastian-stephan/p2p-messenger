@@ -9,11 +9,13 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
-import org.challengetask.usermanagement.FriendsListEntry;
 import org.challengetask.MainApp;
+import org.challengetask.messages.AudioFrame;
+import org.challengetask.messages.CallRequestMessage;
 import org.challengetask.messages.ChatMessage;
 import org.challengetask.messages.FriendRequestMessage;
 import org.challengetask.messages.OnlineStatusMessage;
+import org.challengetask.usermanagement.FriendsListEntry;
 import org.controlsfx.control.Notifications;
 
 /**
@@ -42,10 +44,19 @@ public class ObjectReplyHandler implements ObjectDataReply {
             Platform.runLater(task);
         } else if (o instanceof ChatMessage) {
             Runnable task = () -> {
-                ChatMessage msg = (ChatMessage)o;
+                ChatMessage msg = (ChatMessage) o;
                 mainApp.handleIncomingChatMessage(msg);
             };
             Platform.runLater(task);
+        } else if (o instanceof CallRequestMessage) {
+            Runnable task = () -> {
+                CallRequestMessage msg = (CallRequestMessage) o;
+                mainApp.handleIncomingCallRequestMessage(msg);
+            };
+            Platform.runLater(task);
+        } else if (o instanceof AudioFrame) {
+            AudioFrame msg = (AudioFrame)o;
+            mainApp.handleIncomingAudioFrame(msg);
         }
         return null;
     }

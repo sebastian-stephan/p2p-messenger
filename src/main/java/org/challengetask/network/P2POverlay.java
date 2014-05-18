@@ -102,6 +102,7 @@ public class P2POverlay {
         }
 
         try {
+            peer.discover().inetAddress(InetAddress.getByName(bootstrapIP)).ports(4001).start().awaitUninterruptibly();
             FutureBootstrap futureBootstrap = peer.bootstrap().setInetAddress(InetAddress.getByName(bootstrapIP)).setPorts(4001).start();
             futureBootstrap.awaitUninterruptibly();
             if (futureBootstrap.isSuccess()) {

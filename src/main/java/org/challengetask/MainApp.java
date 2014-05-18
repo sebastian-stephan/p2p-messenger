@@ -1,8 +1,5 @@
 package org.challengetask;
 
-import org.challengetask.usermanagement.PrivateUserProfile;
-import org.challengetask.usermanagement.PublicUserProfile;
-import org.challengetask.usermanagement.FriendsListEntry;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,19 +15,25 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Pair;
+import javax.sound.sampled.LineUnavailableException;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureGet;
 import net.tomp2p.peers.PeerAddress;
-import org.challengetask.audio.OpusSoundTest;
+import org.challengetask.messages.AudioFrame;
+import org.challengetask.audio.CallHandler;
 import org.challengetask.gui.FXMLChatController;
 import org.challengetask.gui.FXMLLoginController;
 import org.challengetask.gui.FXMLMainController;
 import org.challengetask.gui.FriendsListComparator;
+import org.challengetask.messages.CallRequestMessage;
 import org.challengetask.messages.ChatMessage;
 import org.challengetask.messages.FriendRequestMessage;
 import org.challengetask.messages.OnlineStatusMessage;
 import org.challengetask.network.ObjectReplyHandler;
 import org.challengetask.network.P2POverlay;
+import org.challengetask.usermanagement.FriendsListEntry;
+import org.challengetask.usermanagement.PrivateUserProfile;
+import org.challengetask.usermanagement.PublicUserProfile;
 import org.controlsfx.control.Notifications;
 import org.controlsfx.dialog.Dialogs;
 
@@ -42,7 +45,7 @@ public class MainApp extends Application {
     private FXMLMainController mainController;
 
     private P2POverlay p2p;
-    private OpusSoundTest o;
+    private CallHandler callHandler;
 
     private PrivateUserProfile userProfile;
     private ObservableList<FriendsListEntry> friendsList;
@@ -50,7 +53,7 @@ public class MainApp extends Application {
     private Map<FriendsListEntry, FXMLChatController> openChats = new HashMap<>();
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) {
         mainStage = stage;
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
@@ -65,7 +68,12 @@ public class MainApp extends Application {
         // Load login screen
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(getClass().getResource("/fxml/LoginScene.fxml"));
-        Parent loginRoot = fxmlLoader.load();
+        Parent loginRoot = null;
+        try {
+            loginRoot = fxmlLoader.load();
+        } catch (IOException ex) {
+            Logger.getLogger(MainApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
         loginController = fxmlLoader.getController();
         loginController.setApplication(this);
         loginScene = new Scene(loginRoot);
@@ -78,6 +86,7 @@ public class MainApp extends Application {
         // Try to bootstrap
         String bootstrapIP = getParameters().getNamed().get("bootstrap");
         bootstrapIP = (bootstrapIP == null) ? "127.0.0.1" : bootstrapIP;
+
         Pair<Boolean, String> result = p2p.bootstrap(bootstrapIP);
         if (result.getKey() == false) {
             Dialogs.create().owner(mainStage)
@@ -86,8 +95,19 @@ public class MainApp extends Application {
                     .showError();
             mainStage.close();
         }
-    }
 
+        System.out.println("Bootstrapped to: " + bootstrapIP
+                + "My IP: " + p2p.getPeerAddress().getInetAddress().getHostAddress());
+
+        //callHandler = new CallHandler(userProfile, p2p, null);
+        //try {
+        //    callHandler.start();
+        //} catch (LineUnavailableException ex) {
+        //    callHandler.stop();
+        //    callHandler = null;
+        //    System.out.println("LineUnavailableException");
+        //}
+    }
 
     public Pair<Boolean, String> createAccount(String userID, String password) {
         // Check if the user is already in the friendslist
@@ -332,15 +352,37 @@ public class MainApp extends Application {
                 if (openChat == null) {
                     openChatWindow(e);
                     openChat = openChats.get(e);
-                } 
-                
+                }
+
                 // Send chat message to controller
                 openChat.showIncomingChatMessage(msg.getSenderUserID(), msg.getMessageText());
             }
         }
     }
 
-    
+    public void handleIncomingCallRequestMessage(CallRequestMessage msg) {
+        synchronized (this) {
+            FriendsListEntry friend = getFriendsListEntry(msg.getSenderUserID());
+
+            // If friend is in friendslist
+            if (friend != null) {
+                // TODO: Is there already a call window open?
+
+                callHandler = new CallHandler(userProfile, p2p, friend);
+                try {
+                    callHandler.start();
+                } catch (LineUnavailableException ex) {
+                    callHandler.stop();
+                    callHandler = null;
+                    System.out.println("LineUnavailableException");
+                }
+            }
+        }
+    }
+
+    public void handleIncomingAudioFrame(AudioFrame frame) {
+        callHandler.addAudioFrame(frame.getData());
+    }
 
     public void openChatWindow(FriendsListEntry friend) {
         // Check if there is already a chat window open
@@ -370,6 +412,20 @@ public class MainApp extends Application {
     public void sendChatMessage(String text, FriendsListEntry friendsListEntry) {
         ChatMessage chatMessage = new ChatMessage(p2p.getPeerAddress(), userProfile.getUserID(), text);
         p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), chatMessage);
+    }
+
+    public void sendCallRequest(FriendsListEntry friendsListEntry) {
+        CallRequestMessage callRequestMessage = new CallRequestMessage(p2p.getPeerAddress(), userProfile.getUserID());
+        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), callRequestMessage);
+
+        callHandler = new CallHandler(userProfile, p2p, friendsListEntry);
+        try {
+            callHandler.start();
+        } catch (LineUnavailableException ex) {
+            callHandler.stop();
+            callHandler = null;
+            System.out.println("LineUnavailableException");
+        }
     }
 
     public void removeChatWindow(FriendsListEntry friend) {
@@ -427,7 +483,7 @@ public class MainApp extends Application {
             System.out.println("Could not update peer address in public user profile");
             return;
         }
-        
+
         p2p.setObjectDataReply(null);
 
         userProfile = null;
@@ -439,6 +495,10 @@ public class MainApp extends Application {
     }
 
     public void shutdown() {
+        // Stop the sound test
+        if (callHandler != null) {
+            callHandler.stop();
+        }
 
         // Shutdown Tom P2P stuff
         p2p.shutdown();
