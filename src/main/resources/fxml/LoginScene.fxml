@@ -10,7 +10,7 @@
 
 <AnchorPane id="AnchorPane" minHeight="187.0" minWidth="184.0" prefHeight="349.00019999999495" prefWidth="376.25" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.challengetask.gui.FXMLLoginController">
   <children>
-    <Label alignment="CENTER" layoutY="14.0" minHeight="-1.0" minWidth="-1.0" prefHeight="84.0" prefWidth="270.75" styleClass="logo" text="Skype" AnchorPane.leftAnchor="51.88" AnchorPane.rightAnchor="51.88">
+    <Label alignment="CENTER" minHeight="-1.0" minWidth="-1.0" prefHeight="84.0" prefWidth="270.75" styleClass="logo" text="tomcall" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <effect>
         <Reflection bottomOpacity="0.023809523809523808" fraction="0.6388888888888888" topOffset="-30.0" topOpacity="0.5634920634920635" />
       </effect>

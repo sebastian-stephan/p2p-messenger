@@ -18,6 +18,7 @@
 }
 
 .logo {
+    -fx-font-family: "Black Rose";
     -fx-font-size: 55pt;
     -fx-text-fill: #0077DB;
 }

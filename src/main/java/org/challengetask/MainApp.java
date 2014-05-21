@@ -12,6 +12,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Pair;
@@ -66,6 +67,9 @@ public class MainApp extends Application {
 
         // Setup network stuff
         p2p = new P2POverlay();
+        
+        // Load fonts
+        Font.loadFont(getClass().getResource("/fonts/blackrose.ttf").toExternalForm(), 10);
 
         // Load login screen
         FXMLLoader fxmlLoader = new FXMLLoader();
@@ -81,7 +85,7 @@ public class MainApp extends Application {
         loginScene = new Scene(loginRoot);
 
         // Show login screen
-        mainStage.setTitle("Skype");
+        mainStage.setTitle("tomcall");
         mainStage.setScene(loginScene);
         mainStage.show();
 
