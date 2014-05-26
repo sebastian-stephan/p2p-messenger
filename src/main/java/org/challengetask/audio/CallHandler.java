@@ -30,8 +30,9 @@ public class CallHandler {
 
     static int BITRATE = 12000;
     static int BIT_DEPTH = 16;
-    static int FRAME_LENGTH = 20;
+    public static int FRAME_LENGTH = 20;
     static int FRAME_SIZE = (BITRATE * BIT_DEPTH * FRAME_LENGTH) / (1000 * 8);
+    public static int MAX_PLAY_BUFFER_SIZE = 10;
 
     private final BlockingQueue<byte[]> incomingAudioBuffer = new LinkedBlockingQueue<>();
 
@@ -54,6 +55,7 @@ public class CallHandler {
         mainApp = _mainApp;
         p2p = _p2p;
         friend = _friend;
+        FRAME_SIZE = (BITRATE * BIT_DEPTH * FRAME_LENGTH) / (1000 * 8);
     }
 
     // Load Opus Library
@@ -118,7 +120,7 @@ public class CallHandler {
                         byte dataFromMic[] = recordFromMicrophone(format);
                         if (dataFromMic != null) {
                             AudioFrame frame = new AudioFrame(p2p.getPeerAddress(), mainApp.getUserID(), dataFromMic);
-                            p2p.sendNonBlocking(friend.getPeerAddress(), frame);
+                            p2p.sendNonBlocking(friend.getPeerAddress(), frame, true);
                         }
 
                     } catch (LineUnavailableException e) {

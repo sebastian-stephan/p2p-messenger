@@ -60,7 +60,7 @@ public class FXMLMainController implements Initializable {
         friendsList.setItems(list);
     }
 
-    public void updateFriendsListView() {
+    public void sortFriendsListView() {
         ObservableList list = friendsList.getItems();
         list.sort(new FriendsListComparator());
         friendsList.setItems(null);

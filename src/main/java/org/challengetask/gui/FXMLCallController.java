@@ -82,7 +82,7 @@ public class FXMLCallController implements Initializable {
     public void sendAcceptMessage(boolean _accept) {
         CallAcceptMessage callAcceptMessage = new CallAcceptMessage(p2p.getPeerAddress(), mainApp.getUserID());
         callAcceptMessage.setAccept(_accept);
-        p2p.sendNonBlocking(getFriendsListEntry().getPeerAddress(), callAcceptMessage);
+        p2p.sendNonBlocking(getFriendsListEntry().getPeerAddress(), callAcceptMessage, false);
     }
 
     @FXML

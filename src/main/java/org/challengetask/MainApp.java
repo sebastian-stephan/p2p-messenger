@@ -3,6 +3,10 @@ package org.challengetask;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -55,9 +59,27 @@ public class MainApp extends Application {
     private ObservableList<FriendRequestMessage> friendRequestsList;
     private Map<FriendsListEntry, FXMLChatController> openChats = new HashMap<>();
 
+    private ScheduledExecutorService scheduler;
+
     @Override
     public void start(Stage stage) {
         mainStage = stage;
+
+        // Get parameters
+        String bootstrapIP = getParameters().getNamed().get("bootstrap");
+        bootstrapIP = (bootstrapIP == null) ? "127.0.0.1" : bootstrapIP;
+
+        String maxBufferSize = getParameters().getNamed().get("buffersize");
+        if (maxBufferSize != null) {
+            CallHandler.MAX_PLAY_BUFFER_SIZE = Integer.parseInt(maxBufferSize);
+        }
+
+        String frameLength = getParameters().getNamed().get("framelength");
+        if (frameLength != null) {
+            CallHandler.FRAME_LENGTH = Integer.parseInt(frameLength);
+        }
+
+        // What should happen when user closes window
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
@@ -67,7 +89,7 @@ public class MainApp extends Application {
 
         // Setup network stuff
         p2p = new P2POverlay();
-        
+
         // Load fonts
         Font.loadFont(getClass().getResource("/fonts/blackrose.ttf").toExternalForm(), 10);
 
@@ -90,9 +112,6 @@ public class MainApp extends Application {
         mainStage.show();
 
         // Try to bootstrap
-        String bootstrapIP = getParameters().getNamed().get("bootstrap");
-        bootstrapIP = (bootstrapIP == null) ? "127.0.0.1" : bootstrapIP;
-
         Pair<Boolean, String> result = p2p.bootstrap(bootstrapIP);
         if (result.getKey() == false) {
             Dialogs.create().owner(mainStage)
@@ -114,7 +133,7 @@ public class MainApp extends Application {
         // Check if the user is already in the friendslist
 
         // Check if account exists
-        if (p2p.get(userID) != null) {
+        if (p2p.getBlocking(userID) != null) {
             return new Pair<>(false, "Could not create user account. UserID already taken.");
         }
 
@@ -140,7 +159,7 @@ public class MainApp extends Application {
 
     public Pair<Boolean, String> login(String userID, String password) {
         // Get userprofile if password and username are correct
-        Object getResult = p2p.get(userID + password);
+        Object getResult = p2p.getBlocking(userID + password);
         if (getResult == null) {
             return new Pair<>(false, "Login data not valid, Wrong UserID/password?");
         }
@@ -162,7 +181,7 @@ public class MainApp extends Application {
         mainController.setApplication(this);
 
         // Get public user profile
-        Object objectPublicUserProfile = p2p.get(userID);
+        Object objectPublicUserProfile = p2p.getBlocking(userID);
         if (objectPublicUserProfile == null) {
             return new Pair<>(false, "Could not retrieve public userprofile");
         }
@@ -173,6 +192,7 @@ public class MainApp extends Application {
         for (FriendsListEntry e : userProfile.getFriendsList()) {
             e.setOnline(false);
             e.setPeerAddress(null);
+            e.setWaitingForHeartbeat(false);
         }
         // Set the observable friends list from the user profile
         friendsList = FXCollections.synchronizedObservableList(FXCollections.observableList(userProfile.getFriendsList()));
@@ -211,6 +231,12 @@ public class MainApp extends Application {
         // Send out online status to all friends
         pingAllFriends(true);
 
+        // Schedule new thread to check periodically if friends are still online
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            pingAllOnlineFriends();
+        }, 10, 10, SECONDS);
+
         return new Pair<>(true, "Login successful");
     }
 
@@ -225,7 +251,7 @@ public class MainApp extends Application {
         pingAllFriends(false);
 
         // Set PeerAddress in public Profile to null
-        Object objectPublicUserProfile = p2p.get(userProfile.getUserID());
+        Object objectPublicUserProfile = p2p.getBlocking(userProfile.getUserID());
         if (objectPublicUserProfile == null) {
             System.out.println("Could not retrieve public userprofile");
             return;
@@ -237,6 +263,7 @@ public class MainApp extends Application {
             return;
         }
 
+        scheduler.shutdownNow();
         p2p.setObjectDataReply(null);
 
         userProfile = null;
@@ -261,14 +288,14 @@ public class MainApp extends Application {
      * Friends Management *
      */
     public boolean existsUser(String userID) {
-        return (p2p.get(userID) != null);
+        return (p2p.getBlocking(userID) != null);
     }
 
     public boolean addFriend(String userID) {
         // Add to list
         friendsList.add(new FriendsListEntry(userID));
         friendsList.sort(new FriendsListComparator());
-        mainController.updateFriendsListView();
+        mainController.sortFriendsListView();
 
         // Send ping
         pingUser(userID, true, true);
@@ -289,17 +316,19 @@ public class MainApp extends Application {
         }
 
         // Get public profile of friend we want to add
-        PublicUserProfile friendProfile = (PublicUserProfile) p2p.get(userID);
+        PublicUserProfile friendProfile = (PublicUserProfile) p2p.getBlocking(userID);
 
         // Create friend request message
         FriendRequestMessage friendRequestMessage = new FriendRequestMessage(p2p.getPeerAddress(), userProfile.getUserID(), messageText);
 
-        // Try to send direct friend request if other user is online
+        // Try to send direct friend request first, (in case user is online)
+        boolean sendDirect = false;
         if (friendProfile.getPeerAddress() != null) {
-            if (p2p.send(friendProfile.getPeerAddress(), friendRequestMessage) == false) {
-                return new Pair<>(false, "Error sending direct friend request");
-            }
-        } else {
+            sendDirect = p2p.sendBlocking(friendProfile.getPeerAddress(), friendRequestMessage);
+        }
+
+        // If that failed, or other has no peer address, append to pub profile of other friend
+        if (sendDirect == false) {
             // Friend is not online, append to public profile
             friendProfile.getPendingFriendRequests().add(friendRequestMessage);
             if (p2p.put(userID, friendProfile) == false) {
@@ -369,20 +398,23 @@ public class MainApp extends Application {
 
             // If friend is in friendslist
             if (e != null) {
-                // Set online
-                e.setOnline(msg.isOnline());
-                e.setPeerAddress(msg.getSenderPeerAddress());
 
-                updateFriendsListView();
-                // Show notification
-                if (msg.isOnline()) {
+                // Show notification if user came online
+                if (msg.isOnline() && !e.isOnline()) {
                     Notifications.create().text("User " + msg.getSenderUserID() + " just came online")
                             .showInformation();
                 }
 
+                // Set online/offline
+                e.setOnline(msg.isOnline());
+                e.setPeerAddress(msg.getSenderPeerAddress());
+                e.setWaitingForHeartbeat(false);
+
+                sortFriendsListView();
+
                 // Send pong back if wanted
                 if (msg.isReplyPongExpected()) {
-                    pingUser(msg.getSenderPeerAddress(), true, false);
+                    pingAddress(msg.getSenderPeerAddress(), true, false);
                 }
             }
         }
@@ -401,16 +433,32 @@ public class MainApp extends Application {
         return null;
     }
 
-    public void updateFriendsListView() {
-        mainController.updateFriendsListView();
+    public void sortFriendsListView() {
+        mainController.sortFriendsListView();
     }
 
-    public void pingUser(PeerAddress pa, boolean onlineStatus, boolean replyPongExpected) {
+    /**
+     * Sends a onlineStatusMessage to the selected PeerAddress, indicating if we
+     * are online or offline.
+     *
+     * @param pa: PeerAddress of target client.
+     * @param onlineStatus: True if we are online, False if offline
+     * @param replyPongExpected True if we want a ping back as confirmation.
+     */
+    public void pingAddress(PeerAddress pa, boolean onlineStatus, boolean replyPongExpected) {
         // Send ping
         OnlineStatusMessage msg = new OnlineStatusMessage(p2p.getPeerAddress(), userProfile.getUserID(), onlineStatus, replyPongExpected);
-        p2p.sendNonBlocking(pa, msg);
+        p2p.sendNonBlocking(pa, msg, false);
     }
 
+    /**
+     * Sends a onlineStatusMessage to the selected user, whilst first checking
+     * for the correct PeerAddress of that user.
+     *
+     * @param userID: UserID of target.
+     * @param onlineStatus: True if we are online, False if offline
+     * @param replyPongExpected: True if we want a ping back as confirmation.
+     */
     private void pingUser(String userID, boolean onlineStatus, boolean replyPongExpected) {
         p2p.getNonBLocking(userID, new BaseFutureAdapter<FutureGet>() {
             @Override
@@ -425,7 +473,7 @@ public class MainApp extends Application {
 
                     // Send ping
                     if (peerAddress != null) {
-                        pingUser(publicUserProfile.getPeerAddress(), onlineStatus, replyPongExpected);
+                        pingAddress(publicUserProfile.getPeerAddress(), onlineStatus, replyPongExpected);
                     }
                 } else {
                     // Can't find other peer, maybe he deleted his account? -> show offline
@@ -438,18 +486,27 @@ public class MainApp extends Application {
 
     }
 
+    /**
+     * Pings all friends in the friendslist with an online or offline status
+     * message. If used with onlineStatus=True, a reply is expected from the
+     * other users to see who is online. (Used at login) If used with
+     * onlineStatus=False, we do not ask for a reply. (Used at logout)
+     *
+     * @param onlineStatus: True if we go online, False if we go offline.
+     */
     private void pingAllFriends(boolean onlineStatus) {
         for (FriendsListEntry entry : friendsList) {
             String userID = entry.getUserID();
 
-            // Assuming online friends have the correct peer address
+            // For friends that are online, send direct to their PeerAddress
             if (entry.isOnline()) {
                 OnlineStatusMessage ping = new OnlineStatusMessage(p2p.getPeerAddress(), userProfile.getUserID(),
                         onlineStatus, onlineStatus);
-                p2p.sendNonBlocking(entry.getPeerAddress(), ping);
-            } // If friend seems offline, only send out ping if we come online
+                p2p.sendNonBlocking(entry.getPeerAddress(), ping, false);
+            } // For friends that are offline and in the case that we want to tell
+            // them we're coming online, use pingUser method to first check for
+            // their peerAddress (if any).
             else if (!entry.isOnline() && onlineStatus == true) {
-                // Get users public profile and read it's peer address
                 pingUser(userID, onlineStatus, onlineStatus);
 
             }
@@ -457,7 +514,36 @@ public class MainApp extends Application {
     }
 
     /**
-     * Chat functionality *
+     * Heartbeat like ping to all online friends to check periodically if they
+     * are still online. This will send a OnlineStatusMessage to each online
+     * friend and tell them to respond with a reply message. If the friend
+     * didn't reply since the last call, she will be set offline.
+     */
+    private void pingAllOnlineFriends() {
+        for (FriendsListEntry entry : friendsList) {
+            if (entry.isOnline()) {
+                // If friend din't reply since last call, set him offline
+                if (entry.isWaitingForHeartbeat()) {
+                    entry.setOnline(false);
+                    sortFriendsListView();
+                }
+
+                // Flag friend until he replies
+                entry.setWaitingForHeartbeat(true);
+
+                OnlineStatusMessage ping = new OnlineStatusMessage(p2p.getPeerAddress(), userProfile.getUserID(),
+                        true, true);
+                p2p.sendNonBlocking(entry.getPeerAddress(), ping, false);
+            }
+        }
+
+    }
+
+    /**
+     * Open a new chat with the given friend, if it is not already open. If it
+     * is open, will set the focus to the chat window of that user.
+     *
+     * @param friend: FriendsListEntry of the other friend.
      */
     public void openChatWindow(FriendsListEntry friend) {
         // Check if there is already a chat window open
@@ -492,7 +578,7 @@ public class MainApp extends Application {
 
     public void sendChatMessage(String text, FriendsListEntry friendsListEntry) {
         ChatMessage chatMessage = new ChatMessage(p2p.getPeerAddress(), userProfile.getUserID(), text);
-        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), chatMessage);
+        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), chatMessage, false);
     }
 
     public void handleIncomingChatMessage(ChatMessage msg) {
@@ -549,7 +635,7 @@ public class MainApp extends Application {
 
         // Send call request
         CallRequestMessage callRequestMessage = new CallRequestMessage(p2p.getPeerAddress(), userProfile.getUserID());
-        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), callRequestMessage);
+        p2p.sendNonBlocking(friendsListEntry.getPeerAddress(), callRequestMessage, false);
     }
 
     public void handleIncomingCallRequestMessage(CallRequestMessage msg) {
@@ -563,7 +649,7 @@ public class MainApp extends Application {
                     // Send decline, we're busy with another call
                     CallAcceptMessage callAcceptMessage = new CallAcceptMessage(p2p.getPeerAddress(), getUserID());
                     callAcceptMessage.setAccept(false);
-                    p2p.sendNonBlocking(msg.getSenderPeerAddress(), callAcceptMessage);
+                    p2p.sendNonBlocking(msg.getSenderPeerAddress(), callAcceptMessage, false);
                 } else {
                     // Show incoming call
                     Notifications.create().title("Incoming call")

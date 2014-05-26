@@ -14,7 +14,6 @@ import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDirect;
-import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.futures.FutureGet;
 import net.tomp2p.futures.FuturePut;
 import net.tomp2p.p2p.Peer;
@@ -25,7 +24,7 @@ import net.tomp2p.rpc.ObjectDataReply;
 import net.tomp2p.storage.Data;
 
 /**
- *
+ * Basically a wrapper for TomP2P for the needs of this application.
  * @author Sebastian
  */
 public class P2POverlay {
@@ -51,7 +50,7 @@ public class P2POverlay {
         return futurePut.isSuccess();
     }
 
-    public Object get(String key) {
+    public Object getBlocking(String key) {
         FutureGet futureGet = peer.get(Number160.createHash(key)).start().awaitUninterruptibly();
 
         if (futureGet.isSuccess()) {
@@ -65,16 +64,16 @@ public class P2POverlay {
         }
     }
 
-    public boolean send(PeerAddress recipient, Object o) {
+    public boolean sendBlocking(PeerAddress recipient, Object o) {
         FutureDirect futureDirect = peer.sendDirect(recipient)
                 .setObject(o).start().awaitUninterruptibly();
 
         return futureDirect.isSuccess();
     }
 
-    public void sendNonBlocking(PeerAddress recipient, Object o) {
-        FutureDirect frutureDirect = peer.sendDirect(recipient)
-                .setObject(o).start();
+    public void sendNonBlocking(PeerAddress recipient, Object o, boolean forceUDP) {
+        FutureDirect futureDirect = peer.sendDirect(recipient)
+                .setObject(o).setForceTCP(forceUDP).start();
     }
 
     public void getNonBLocking(String key, BaseFutureAdapter<FutureGet> baseFutureAdapter) {

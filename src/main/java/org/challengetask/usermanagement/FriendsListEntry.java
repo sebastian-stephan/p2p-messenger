@@ -10,13 +10,14 @@ import java.io.Serializable;
 import net.tomp2p.peers.PeerAddress;
 
 /**
- *
+ * An entry in the friends list.
  * @author sstephan
  */
 public class FriendsListEntry implements Serializable {
     private final String userID;
     private PeerAddress peerAddress;
     private boolean online = false;
+    private boolean waitingForHeartbeat = false;
 
     public FriendsListEntry(String _userID) {
         userID = _userID;
@@ -44,17 +45,31 @@ public class FriendsListEntry implements Serializable {
     }
 
     /**
-     * @return the online
+     * @return if the user is online
      */
     public boolean isOnline() {
         return online;
     }
 
     /**
-     * @param online the online to set
+     * @param set online status (true=online, false=offline)
      */
     public void setOnline(boolean online) {
         this.online = online;
+    }
+
+    /**
+     * @return if entry is wainting for a heartbeat.
+     */
+    public boolean isWaitingForHeartbeat() {
+        return waitingForHeartbeat;
+    }
+
+    /**
+     * @param flag the entry to be wating for a heartbeat.
+     */
+    public void setWaitingForHeartbeat(boolean waitingForHeartbeat) {
+        this.waitingForHeartbeat = waitingForHeartbeat;
     }
 
 }
